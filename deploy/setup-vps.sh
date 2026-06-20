@@ -4,11 +4,11 @@
 
 set -euo pipefail
 
-DOMAIN="${1:-}"
+DOMAIN="${1:-dyntra.in}"
 APP_DIR="/var/www/dyntra"
 
 if [ -z "$DOMAIN" ]; then
-  echo "Usage: bash deploy/setup-vps.sh yourdomain.com"
+  echo "Usage: bash deploy/setup-vps.sh [dyntra.in]"
   exit 1
 fi
 
