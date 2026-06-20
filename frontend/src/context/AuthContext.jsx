@@ -16,14 +16,32 @@ export function AuthProvider({ children }) {
     }
 
     localStorage.setItem('dyntra-token', token);
+    let cancelled = false;
+
+    const timeout = setTimeout(() => {
+      if (!cancelled) setLoading(false);
+    }, 8000);
+
     fetchMe(token)
-      .then(setUser)
-      .catch(() => {
-        localStorage.removeItem('dyntra-token');
-        setToken(null);
-        setUser(null);
+      .then((user) => {
+        if (!cancelled) setUser(user);
       })
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!cancelled) {
+          localStorage.removeItem('dyntra-token');
+          setToken(null);
+          setUser(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+        clearTimeout(timeout);
+      });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
   }, [token]);
 
   const login = (userData, authToken) => {
