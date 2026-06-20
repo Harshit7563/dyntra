@@ -1,0 +1,1 @@
+export const COD_MAX_PRODUCT_PRICE = 1000;

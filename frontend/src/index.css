@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --color-maroon: #7B1E3A;
+  --color-maroon-dark: #5C1529;
+  --color-gold: #C9A84C;
+  --color-gold-light: #F5E6C8;
+  --color-cream: #FAF7F2;
+  --color-charcoal: #2C2C2C;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-cream);
+  color: var(--color-charcoal);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
