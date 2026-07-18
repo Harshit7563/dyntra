@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice, placeOrder, fetchPaymentConfig, buildPaymentRedirect } from '../api';
@@ -21,7 +21,7 @@ const DEFAULT_METHODS = [
 export default function Checkout() {
   const navigate = useNavigate();
   const { items, total, clearCart } = useCart();
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, loading: authLoading } = useAuth();
   const [coupon, setCoupon] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState('');
   const [couponMsg, setCouponMsg] = useState('');
@@ -96,6 +96,10 @@ export default function Checkout() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isLoggedIn) {
+      navigate('/login', { replace: true, state: { from: { pathname: '/checkout' } } });
+      return;
+    }
     setError('');
     setLoading(true);
     try {
@@ -129,6 +133,18 @@ export default function Checkout() {
     }
   };
 
+  if (authLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-20 text-center text-gray-500">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace state={{ from: { pathname: '/checkout' } }} />;
+  }
+
   if (items.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-20 text-center">
@@ -150,16 +166,6 @@ export default function Checkout() {
       </nav>
 
       <h1 className="font-serif text-3xl text-maroon mb-8">Checkout</h1>
-
-      {!isLoggedIn && (
-        <p className="text-sm text-gray-500 mb-6">
-          Have an account?{' '}
-          <Link to="/login" state={{ from: { pathname: '/checkout' } }} className="text-maroon hover:underline">
-            Sign in
-          </Link>{' '}
-          for faster checkout and order tracking.
-        </p>
-      )}
 
       <form id="checkout-form" onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-10 pb-24 lg:pb-0">
         <div className="lg:col-span-2 space-y-8">

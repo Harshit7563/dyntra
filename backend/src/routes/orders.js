@@ -32,7 +32,7 @@ router.get('/my', authRequired, async (req, res) => {
   }
 });
 
-router.post('/', authOptional, async (req, res) => {
+router.post('/', authRequired, async (req, res) => {
   const client = await pool.connect();
   try {
     const {
