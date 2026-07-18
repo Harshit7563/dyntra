@@ -106,34 +106,52 @@ export default function AdminProductForm() {
     const files = [...(e.target.files || [])];
     if (!files.length) return;
 
-    const remaining = MAX_IMAGES - form.image_urls.length;
-    if (remaining <= 0) {
-      setAlert({ type: 'error', message: `Maximum ${MAX_IMAGES} images allowed` });
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-
-    const toUpload = files.slice(0, remaining);
     setUploading(true);
     clearAlert();
+
+    const uploaded = [];
+    const failures = [];
+    let existingCount = form.image_urls.length;
+
     try {
-      // Upload one-by-one (more reliable on cPanel/Passenger than multi-file)
-      const urls = [];
-      for (const file of toUpload) {
-        const { url } = await adminApi.uploadProductImage(file);
-        if (url) urls.push(url);
+      for (const file of files) {
+        if (existingCount >= MAX_IMAGES) {
+          failures.push(`Max ${MAX_IMAGES} images reached`);
+          break;
+        }
+
+        try {
+          const { url } = await adminApi.uploadProductImage(file);
+          if (!url) throw new Error('No URL returned');
+          uploaded.push(url);
+          existingCount += 1;
+          setForm((prev) => {
+            if (prev.image_urls.includes(url) || prev.image_urls.length >= MAX_IMAGES) {
+              return prev;
+            }
+            return {
+              ...prev,
+              image_urls: [...prev.image_urls, url].slice(0, MAX_IMAGES),
+            };
+          });
+        } catch (err) {
+          failures.push(`${file.name}: ${err.message || 'failed'}`);
+        }
       }
-      if (!urls.length) throw new Error('Upload failed');
-      setForm((prev) => ({
-        ...prev,
-        image_urls: [...prev.image_urls, ...urls].slice(0, MAX_IMAGES),
-      }));
-      setAlert({
-        type: 'success',
-        message: `${urls.length} image${urls.length > 1 ? 's' : ''} uploaded`,
-      });
-    } catch (err) {
-      setAlert({ type: 'error', message: err.message || 'Image upload failed' });
+
+      if (uploaded.length) {
+        setAlert({
+          type: 'success',
+          message: failures.length
+            ? `${uploaded.length} uploaded, some failed (${failures[0]})`
+            : `${uploaded.length} image${uploaded.length > 1 ? 's' : ''} uploaded`,
+        });
+      } else {
+        setAlert({
+          type: 'error',
+          message: failures[0] || 'Image upload failed. Use JPG/PNG/WebP under 5 MB.',
+        });
+      }
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -225,19 +243,21 @@ export default function AdminProductForm() {
           <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">
             Product Images * ({form.image_urls.length}/{MAX_IMAGES})
           </label>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            multiple
-            onChange={handleImageUpload}
-            disabled={uploading || form.image_urls.length >= MAX_IMAGES}
-            className="w-full text-sm file:mr-3 file:py-2 file:px-4 file:border-0 file:bg-maroon file:text-white file:text-xs file:uppercase file:tracking-wider"
-          />
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              onChange={handleImageUpload}
+              disabled={uploading || form.image_urls.length >= MAX_IMAGES}
+              className="w-full text-sm file:mr-3 file:py-2 file:px-4 file:border-0 file:bg-maroon file:text-white file:text-xs file:uppercase file:tracking-wider"
+            />
+          </div>
           <p className="text-xs text-gray-500 mt-1">
-            Select multiple files at once, or add more later · JPEG/PNG/WebP/GIF · Max 5 MB each · First image is main photo
+            Ctrl/Cmd dabake kai photos select karo, ya ek ke baad ek add karo · Max {MAX_IMAGES} · JPG/PNG/WebP · 5 MB each · Pehli = main
           </p>
-          {uploading && <p className="text-xs text-maroon mt-2">Uploading...</p>}
+          {uploading && <p className="text-xs text-maroon mt-2">Uploading images... please wait</p>}
           {form.image_urls.length > 0 && (
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
               {form.image_urls.map((url, index) => (
@@ -256,6 +276,16 @@ export default function AdminProductForm() {
                 </div>
               ))}
             </div>
+          )}
+          {form.image_urls.length > 0 && form.image_urls.length < MAX_IMAGES && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="mt-3 text-xs uppercase tracking-wider text-maroon border border-maroon px-3 py-2 hover:bg-maroon hover:text-white disabled:opacity-50"
+            >
+              + Add more images
+            </button>
           )}
         </div>
 

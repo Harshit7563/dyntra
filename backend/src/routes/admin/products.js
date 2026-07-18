@@ -20,7 +20,23 @@ async function syncProductCategories(client, productId, primarySlug, categorySlu
   }
 }
 
+async function ensureProductImagesTable(client) {
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS product_images (
+      id SERIAL PRIMARY KEY,
+      product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      url TEXT NOT NULL,
+      sort_order INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+  await client.query(
+    'CREATE INDEX IF NOT EXISTS idx_product_images_product_id ON product_images(product_id)'
+  );
+}
+
 async function syncProductImages(client, productId, imageUrls) {
+  await ensureProductImagesTable(client);
   await client.query('DELETE FROM product_images WHERE product_id = $1', [productId]);
   const urls = [...new Set((imageUrls || []).map((u) => String(u || '').trim()).filter(Boolean))].slice(0, MAX_IMAGES);
   for (let i = 0; i < urls.length; i++) {
