@@ -117,7 +117,13 @@ export default function AdminProductForm() {
     setUploading(true);
     clearAlert();
     try {
-      const { urls } = await adminApi.uploadProductImages(toUpload);
+      // Upload one-by-one (more reliable on cPanel/Passenger than multi-file)
+      const urls = [];
+      for (const file of toUpload) {
+        const { url } = await adminApi.uploadProductImage(file);
+        if (url) urls.push(url);
+      }
+      if (!urls.length) throw new Error('Upload failed');
       setForm((prev) => ({
         ...prev,
         image_urls: [...prev.image_urls, ...urls].slice(0, MAX_IMAGES),
@@ -127,7 +133,7 @@ export default function AdminProductForm() {
         message: `${urls.length} image${urls.length > 1 ? 's' : ''} uploaded`,
       });
     } catch (err) {
-      setAlert({ type: 'error', message: err.message });
+      setAlert({ type: 'error', message: err.message || 'Image upload failed' });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -229,7 +235,7 @@ export default function AdminProductForm() {
             className="w-full text-sm file:mr-3 file:py-2 file:px-4 file:border-0 file:bg-maroon file:text-white file:text-xs file:uppercase file:tracking-wider"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Multiple images · JPEG/PNG/WebP/GIF · Max 5 MB each · First image is main photo
+            Select multiple files at once, or add more later · JPEG/PNG/WebP/GIF · Max 5 MB each · First image is main photo
           </p>
           {uploading && <p className="text-xs text-maroon mt-2">Uploading...</p>}
           {form.image_urls.length > 0 && (
