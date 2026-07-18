@@ -18,14 +18,15 @@ router.get('/', async (_req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const { name, description, sort_order } = req.body;
+    const { name, description, sort_order, image_url } = req.body;
     const { rows } = await pool.query(
       `UPDATE categories SET
         name = COALESCE($1, name),
         description = COALESCE($2, description),
-        sort_order = COALESCE($3, sort_order)
-       WHERE id = $4 RETURNING *`,
-      [name?.trim(), description?.trim(), sort_order, req.params.id]
+        sort_order = COALESCE($3, sort_order),
+        image_url = COALESCE($4, image_url)
+       WHERE id = $5 RETURNING *`,
+      [name?.trim(), description?.trim(), sort_order, image_url?.trim() || null, req.params.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Category not found' });
     res.json(rows[0]);
