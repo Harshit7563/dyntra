@@ -27,10 +27,12 @@ fi
 
 echo "==> Creating app directory..."
 mkdir -p "$APP_DIR"
-chown -R "$SUDO_USER:$SUDO_USER" /var/www 2>/dev/null || true
+if [ -n "${SUDO_USER:-}" ]; then
+  chown -R "$SUDO_USER:$SUDO_USER" /var/www 2>/dev/null || true
+fi
 
 echo "==> Nginx config for $DOMAIN..."
-sed "s/YOUR_DOMAIN/$DOMAIN/g" "$APP_DIR/deploy/nginx-dyntra.conf" > /etc/nginx/sites-available/dyntra
+cp "$APP_DIR/deploy/nginx-dyntra.conf" /etc/nginx/sites-available/dyntra
 ln -sf /etc/nginx/sites-available/dyntra /etc/nginx/sites-enabled/dyntra
 rm -f /etc/nginx/sites-enabled/default
 nginx -t

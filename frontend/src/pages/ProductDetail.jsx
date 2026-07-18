@@ -11,11 +11,13 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
   useEffect(() => {
     setLoading(true);
+    setActiveImage(0);
     fetchProduct(slug)
       .then(setProduct)
       .catch(console.error)
@@ -39,6 +41,10 @@ export default function ProductDetail() {
     );
   }
 
+  const images = (Array.isArray(product.image_urls) && product.image_urls.length
+    ? product.image_urls
+    : (product.image_url ? [product.image_url] : [])).filter(Boolean);
+  const mainImage = images[activeImage] || images[0];
   const inWishlist = isInWishlist(product.id);
   const outOfStock = product.stock <= 0;
 
@@ -60,8 +66,26 @@ export default function ProductDetail() {
       </nav>
 
       <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
-        <div className="aspect-[3/4] overflow-hidden bg-gray-100">
-          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+        <div>
+          <div className="aspect-[3/4] overflow-hidden bg-gray-100">
+            {mainImage ? (
+              <img src={mainImage} alt={product.name} className="w-full h-full object-cover" />
+            ) : null}
+          </div>
+          {images.length > 1 && (
+            <div className="mt-3 grid grid-cols-4 sm:grid-cols-5 gap-2">
+              {images.map((url, i) => (
+                <button
+                  key={`${url}-${i}`}
+                  type="button"
+                  onClick={() => setActiveImage(i)}
+                  className={`aspect-[3/4] overflow-hidden border ${i === activeImage ? 'border-maroon' : 'border-gold/20'}`}
+                >
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
@@ -72,6 +96,19 @@ export default function ProductDetail() {
             >
               {product.category_name}
             </Link>
+          )}
+          {Array.isArray(product.categories) && product.categories.length > 1 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {product.categories.map((c) => (
+                <Link
+                  key={c.id || c.slug}
+                  to={`/products?category=${c.slug}`}
+                  className="text-[10px] uppercase tracking-wider px-2 py-1 border border-gold/30 text-gray-600 hover:border-maroon hover:text-maroon"
+                >
+                  {c.name}
+                </Link>
+              ))}
+            </div>
           )}
 
           <h1 className="font-serif text-2xl sm:text-3xl text-maroon mt-2 mb-4 leading-snug">

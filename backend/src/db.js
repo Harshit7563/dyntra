@@ -116,6 +116,16 @@ export async function initDb() {
       PRIMARY KEY (product_id, category_id)
     );
 
+    CREATE TABLE IF NOT EXISTS product_images (
+      id SERIAL PRIMARY KEY,
+      product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      url TEXT NOT NULL,
+      sort_order INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_product_images_product_id ON product_images(product_id);
+
     ALTER TABLE categories ADD COLUMN IF NOT EXISTS group_type VARCHAR(50) DEFAULT 'fabric';
     ALTER TABLE categories ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;

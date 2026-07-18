@@ -44,6 +44,15 @@ router.post('/product-image', upload.single('image'), (req, res) => {
   res.json({ url: `/uploads/products/${req.file.filename}` });
 });
 
+router.post('/product-images', upload.array('images', 8), (req, res) => {
+  if (!req.files?.length) {
+    return res.status(400).json({ error: 'At least one image file is required' });
+  }
+  res.json({
+    urls: req.files.map((f) => `/uploads/products/${f.filename}`),
+  });
+});
+
 router.use((err, _req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {

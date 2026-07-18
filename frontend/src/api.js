@@ -213,6 +213,11 @@ export const adminApi = {
     body.append('image', file);
     return adminFetch('/upload/product-image', { method: 'POST', body });
   },
+  uploadProductImages: (files) => {
+    const body = new FormData();
+    [...files].forEach((file) => body.append('images', file));
+    return adminFetch('/upload/product-images', { method: 'POST', body });
+  },
 };
 
 export async function fetchPaymentConfig() {

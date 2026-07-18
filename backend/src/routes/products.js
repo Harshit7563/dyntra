@@ -85,14 +85,31 @@ router.get('/', async (req, res) => {
 router.get('/:slug', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT p.*, c.name as category_name, c.slug as category_slug
+      `SELECT p.*, c.name as category_name, c.slug as category_slug,
+        COALESCE(
+          (SELECT json_agg(json_build_object('id', cat.id, 'slug', cat.slug, 'name', cat.name) ORDER BY cat.name)
+           FROM product_categories pc
+           JOIN categories cat ON cat.id = pc.category_id
+           WHERE pc.product_id = p.id),
+          '[]'
+        ) AS categories,
+        COALESCE(
+          (SELECT json_agg(pi.url ORDER BY pi.sort_order, pi.id)
+           FROM product_images pi
+           WHERE pi.product_id = p.id),
+          '[]'
+        ) AS image_urls
        FROM products p
        LEFT JOIN categories c ON p.category_id = c.id
        WHERE p.slug = $1`,
       [req.params.slug]
     );
     if (!rows.length) return res.status(404).json({ error: 'Product not found' });
-    res.json(rows[0]);
+    const product = rows[0];
+    if (!Array.isArray(product.image_urls) || !product.image_urls.length) {
+      product.image_urls = product.image_url ? [product.image_url] : [];
+    }
+    res.json(product);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
