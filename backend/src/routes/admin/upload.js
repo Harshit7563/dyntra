@@ -12,11 +12,20 @@ router.use(authRequired, adminRequired);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const backendUploadsDir = path.join(__dirname, '../../../uploads/products');
 
-// On cPanel, static site is served from public_html — store images there too
-const publicUploadsDir = process.env.PUBLIC_UPLOADS_DIR
-  || (fs.existsSync('/home/dyntra/public_html')
-    ? '/home/dyntra/public_html/uploads/products'
-    : null);
+// cPanel: site is served from public_html — prefer writing images there
+const publicCandidates = [
+  process.env.PUBLIC_UPLOADS_DIR,
+  '/home/dyntra/public_html/uploads/products',
+].filter(Boolean);
+
+const publicUploadsDir = publicCandidates.find((dir) => {
+  try {
+    const parent = path.dirname(path.dirname(dir)); // .../public_html or env parent
+    return fs.existsSync(path.dirname(dir)) || fs.existsSync(parent) || dir.startsWith('/home/dyntra/public_html');
+  } catch {
+    return false;
+  }
+}) || (fs.existsSync('/home/dyntra/public_html') ? '/home/dyntra/public_html/uploads/products' : null);
 
 const uploadsDir = publicUploadsDir || backendUploadsDir;
 
