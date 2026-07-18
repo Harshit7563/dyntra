@@ -10,10 +10,20 @@ const router = Router();
 router.use(authRequired, adminRequired);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const uploadsDir = path.join(__dirname, '../../../uploads/products');
+const backendUploadsDir = path.join(__dirname, '../../../uploads/products');
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// On cPanel, static site is served from public_html — store images there too
+const publicUploadsDir = process.env.PUBLIC_UPLOADS_DIR
+  || (fs.existsSync('/home/dyntra/public_html')
+    ? '/home/dyntra/public_html/uploads/products'
+    : null);
+
+const uploadsDir = publicUploadsDir || backendUploadsDir;
+
+for (const dir of [backendUploadsDir, publicUploadsDir].filter(Boolean)) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 }
 
 const storage = multer.diskStorage({
@@ -37,10 +47,24 @@ const upload = multer({
   },
 });
 
+function mirrorToBackend(filename) {
+  if (!publicUploadsDir || publicUploadsDir === backendUploadsDir) return;
+  try {
+    const src = path.join(publicUploadsDir, filename);
+    const dest = path.join(backendUploadsDir, filename);
+    if (fs.existsSync(src) && !fs.existsSync(dest)) {
+      fs.copyFileSync(src, dest);
+    }
+  } catch {
+    // non-fatal
+  }
+}
+
 router.post('/product-image', upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Image file is required' });
   }
+  mirrorToBackend(req.file.filename);
   res.json({ url: `/uploads/products/${req.file.filename}` });
 });
 
@@ -48,6 +72,7 @@ router.post('/product-images', upload.array('images', 8), (req, res) => {
   if (!req.files?.length) {
     return res.status(400).json({ error: 'At least one image file is required' });
   }
+  req.files.forEach((f) => mirrorToBackend(f.filename));
   res.json({
     urls: req.files.map((f) => `/uploads/products/${f.filename}`),
   });

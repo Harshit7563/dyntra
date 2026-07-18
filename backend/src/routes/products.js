@@ -106,9 +106,14 @@ router.get('/:slug', async (req, res) => {
     );
     if (!rows.length) return res.status(404).json({ error: 'Product not found' });
     const product = rows[0];
-    if (!Array.isArray(product.image_urls) || !product.image_urls.length) {
-      product.image_urls = product.image_url ? [product.image_url] : [];
+    let imageUrls = product.image_urls;
+    if (typeof imageUrls === 'string') {
+      try { imageUrls = JSON.parse(imageUrls); } catch { imageUrls = []; }
     }
+    if (!Array.isArray(imageUrls) || !imageUrls.length) {
+      imageUrls = product.image_url ? [product.image_url] : [];
+    }
+    product.image_urls = imageUrls;
     res.json(product);
   } catch (err) {
     res.status(500).json({ error: err.message });
