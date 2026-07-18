@@ -5,4 +5,6 @@ dist/
 .DS_Store
 backend/uploads/products/*
 !backend/uploads/products/.gitkeep
-frontend/dist/
+# frontend/dist is committed so cPanel can deploy without npm build
+!frontend/dist/
+!frontend/dist/**
