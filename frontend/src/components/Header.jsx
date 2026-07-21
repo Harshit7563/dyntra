@@ -62,6 +62,13 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('dyntra-open-ai'))}
+              className="text-sm tracking-wide uppercase text-maroon hover:text-maroon/80 transition-colors"
+            >
+              Shop with AI
+            </button>
           </nav>
 
           <div className="flex items-center gap-3 sm:gap-4">
@@ -136,6 +143,16 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+            <button
+              type="button"
+              className="block py-3 text-sm tracking-wide uppercase text-maroon w-full text-left"
+              onClick={() => {
+                setMenuOpen(false);
+                window.dispatchEvent(new Event('dyntra-open-ai'));
+              }}
+            >
+              Shop with AI
+            </button>
             {!isLoggedIn && (
               <div className="pt-3 mt-3 border-t border-gold/10 flex gap-4">
                 <Link to="/login" className="text-sm tracking-wide uppercase hover:text-maroon" onClick={() => setMenuOpen(false)}>

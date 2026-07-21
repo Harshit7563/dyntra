@@ -121,6 +121,15 @@ export async function submitContactForm(data) {
   return parseJson(res);
 }
 
+export async function shopWithAI(messages, excludeIds = []) {
+  const res = await fetch(`${API_BASE}/ai/shop`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, exclude_ids: excludeIds }),
+  });
+  return parseJson(res);
+}
+
 export async function requestPasswordReset(email) {
   const res = await fetch(`${API_BASE}/auth/forgot-password`, {
     method: 'POST',

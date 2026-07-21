@@ -20,18 +20,22 @@ const publicCandidates = [
 
 const publicUploadsDir = publicCandidates.find((dir) => {
   try {
-    const parent = path.dirname(path.dirname(dir)); // .../public_html or env parent
-    return fs.existsSync(path.dirname(dir)) || fs.existsSync(parent) || dir.startsWith('/home/dyntra/public_html');
+    // Only use this path when its parent tree actually exists (cPanel vs local Mac)
+    return fs.existsSync(path.dirname(dir)) || fs.existsSync(path.dirname(path.dirname(dir)));
   } catch {
     return false;
   }
-}) || (fs.existsSync('/home/dyntra/public_html') ? '/home/dyntra/public_html/uploads/products' : null);
+}) || null;
 
 const uploadsDir = publicUploadsDir || backendUploadsDir;
 
 for (const dir of [backendUploadsDir, publicUploadsDir].filter(Boolean)) {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  try {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  } catch (err) {
+    console.warn(`Could not create uploads dir ${dir}:`, err.message);
   }
 }
 
