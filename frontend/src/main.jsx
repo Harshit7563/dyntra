@@ -6,6 +6,7 @@ import ScrollToTop from './components/ScrollToTop';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { AuthProvider } from './context/AuthContext';
+import { FestivalProvider } from './context/FestivalContext';
 import './index.css';
 
 createRoot(document.getElementById('root')).render(
@@ -13,11 +14,13 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <ScrollToTop />
       <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <App />
-          </WishlistProvider>
-        </CartProvider>
+        <FestivalProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <App />
+            </WishlistProvider>
+          </CartProvider>
+        </FestivalProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>

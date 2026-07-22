@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 import { fetchCategoriesGrouped } from '../api';
+import { useFestival } from '../context/FestivalContext';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -13,6 +14,7 @@ export default function Header() {
   const { count: wishlistCount } = useWishlist();
   const { isLoggedIn, user, logout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { theme } = useFestival();
 
   useEffect(() => {
     fetchCategoriesGrouped().then(setGrouped).catch(console.error);
@@ -50,6 +52,11 @@ export default function Header() {
             <span className="text-[10px] sm:text-xs tracking-[0.3em] uppercase text-gold hidden sm:block">
               Pure Silk Sarees
             </span>
+            {theme?.active && theme?.show_badge && theme?.badge_text ? (
+              <span className="mt-0.5 text-[9px] sm:text-[10px] uppercase tracking-wider text-maroon/80 bg-gold/20 px-1.5 py-0.5">
+                {theme.badge_text}
+              </span>
+            ) : null}
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8">

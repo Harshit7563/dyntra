@@ -10,6 +10,7 @@ const links = [
   { to: '/admin/hero', label: 'Hero Slides' },
   { to: '/admin/testimonials', label: 'Testimonials' },
   { to: '/admin/payment', label: 'Payment Gateway' },
+  { to: '/admin/festival', label: 'Festival Theme' },
 ];
 
 export default function AdminLayout() {

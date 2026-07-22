@@ -6,6 +6,7 @@ import ordersRouter from './orders.js';
 import heroRouter from './hero.js';
 import testimonialsRouter from './testimonials.js';
 import paymentAdminRouter from './payment.js';
+import festivalAdminRouter from './festival.js';
 import uploadRouter from './upload.js';
 
 const router = Router();
@@ -17,6 +18,7 @@ router.use('/orders', ordersRouter);
 router.use('/hero', heroRouter);
 router.use('/testimonials', testimonialsRouter);
 router.use('/payment', paymentAdminRouter);
+router.use('/festival', festivalAdminRouter);
 router.use('/upload', uploadRouter);
 
 export default router;

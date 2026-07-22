@@ -30,6 +30,7 @@ import AdminCategories from './pages/admin/AdminCategories';
 import AdminHero from './pages/admin/AdminHero';
 import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminPayment from './pages/admin/AdminPayment';
+import AdminFestival from './pages/admin/AdminFestival';
 import UpiPay from './pages/UpiPay';
 import NotFound from './pages/NotFound';
 
@@ -71,6 +72,7 @@ export default function App() {
         <Route path="hero" element={<AdminHero />} />
         <Route path="testimonials" element={<AdminTestimonials />} />
         <Route path="payment" element={<AdminPayment />} />
+        <Route path="festival" element={<AdminFestival />} />
       </Route>
     </Routes>
   );

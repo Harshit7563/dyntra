@@ -223,6 +223,8 @@ export const adminApi = {
   updatePaymentGateway: (id, data) => adminFetch(`/payment/gateways/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deletePaymentGateway: (id) => adminFetch(`/payment/gateways/${id}`, { method: 'DELETE' }),
   activatePaymentGateway: (id) => adminFetch(`/payment/gateways/${id}/activate`, { method: 'POST' }),
+  festivalSettings: () => adminFetch('/festival'),
+  updateFestivalSettings: (data) => adminFetch('/festival', { method: 'PUT', body: JSON.stringify(data) }),
   uploadProductImage: (file) => {
     const body = new FormData();
     body.append('image', file);
@@ -234,6 +236,12 @@ export const adminApi = {
     return adminFetch('/upload/product-images', { method: 'POST', body });
   },
 };
+
+export async function fetchFestivalTheme() {
+  const res = await fetch(`${API_BASE}/festival`);
+  if (!res.ok) throw new Error('Failed to load festival theme');
+  return res.json();
+}
 
 export async function fetchPaymentConfig() {
   const res = await fetch(`${API_BASE}/payment/config`);

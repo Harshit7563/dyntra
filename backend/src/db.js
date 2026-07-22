@@ -181,5 +181,25 @@ export async function initDb() {
       message TEXT NOT NULL,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS festival_settings (
+      id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+      enabled BOOLEAN DEFAULT false,
+      festival_key VARCHAR(50) DEFAULT 'none',
+      label VARCHAR(100) DEFAULT '',
+      tagline VARCHAR(255) DEFAULT '',
+      badge_text VARCHAR(100) DEFAULT '',
+      show_badge BOOLEAN DEFAULT true,
+      announcements TEXT DEFAULT '',
+      accent_primary VARCHAR(20) DEFAULT '#7B1E3A',
+      accent_secondary VARCHAR(20) DEFAULT '#C9A84C',
+      accent_bg VARCHAR(20) DEFAULT '#FAF7F2',
+      starts_at DATE,
+      ends_at DATE,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    INSERT INTO festival_settings (id, enabled, festival_key)
+    VALUES (1, false, 'none') ON CONFLICT (id) DO NOTHING;
   `);
 }
