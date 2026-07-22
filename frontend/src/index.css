@@ -30,7 +30,7 @@ h1, h2, h3, h4 {
   animation: marquee 25s linear infinite;
 }
 
-/* ——— Festival overlays (admin-enabled) ——— */
+/* ——— Festival overlays (per-festival animations) ——— */
 .festival-fx {
   pointer-events: none;
   position: fixed;
@@ -38,339 +38,422 @@ h1, h2, h3, h4 {
   z-index: 40;
   overflow: hidden;
 }
-
 .festival-fx__glow {
   position: absolute;
   inset: 0;
-  opacity: 0.45;
+  opacity: 0.4;
   animation: festival-ambient 8s ease-in-out infinite alternate;
 }
-
 .festival-fx__bit {
   position: absolute;
   top: -8%;
   border-radius: 9999px;
   will-change: transform, opacity;
   animation: festival-fall 9s linear infinite;
-}
-
-/* Diwali / lamps */
-.festival-fx--lights .festival-fx__glow {
-  background:
-    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(251, 191, 36, 0.35), transparent 60%),
-    radial-gradient(ellipse 50% 35% at 80% 5%, rgba(234, 179, 8, 0.28), transparent 55%);
-}
-.festival-fx--lights .festival-fx__bit {
-  background: radial-gradient(circle, #fff7c2 0%, #fbbf24 45%, transparent 72%);
-  box-shadow: 0 0 10px 2px rgba(251, 191, 36, 0.65), 0 0 22px rgba(234, 179, 8, 0.35);
-  animation-name: festival-twinkle-fall;
-}
-
-/* Gold sparkles */
-.festival-fx--sparkle .festival-fx__glow {
-  background: radial-gradient(ellipse 70% 30% at 50% 0%, rgba(201, 168, 76, 0.2), transparent 70%);
-}
-.festival-fx--sparkle .festival-fx__bit {
-  background: #f5e6c8;
-  box-shadow: 0 0 6px #c9a84c;
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-  border-radius: 0;
-  animation-name: festival-sparkle;
-}
-
-/* Holi colours */
-.festival-fx--colors .festival-fx__glow {
-  background:
-    radial-gradient(circle at 15% 20%, rgba(236, 72, 153, 0.18), transparent 40%),
-    radial-gradient(circle at 85% 15%, rgba(139, 92, 246, 0.16), transparent 40%),
-    radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.14), transparent 45%);
-}
-.festival-fx--colors .festival-fx__bit {
-  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-  filter: blur(0.3px);
-  animation-name: festival-color-float;
-}
-.festival-fx--colors .festival-fx__bit:nth-child(5n) { background: #ec4899; }
-.festival-fx--colors .festival-fx__bit:nth-child(5n+1) { background: #8b5cf6; }
-.festival-fx--colors .festival-fx__bit:nth-child(5n+2) { background: #f59e0b; }
-.festival-fx--colors .festival-fx__bit:nth-child(5n+3) { background: #22c55e; }
-.festival-fx--colors .festival-fx__bit:nth-child(5n+4) { background: #3b82f6; }
-
-/* Petals / flowers */
-.festival-fx--petals .festival-fx__glow {
-  background: radial-gradient(ellipse 50% 25% at 50% 0%, rgba(244, 114, 182, 0.15), transparent 70%);
-}
-.festival-fx--petals .festival-fx__bit {
-  border-radius: 50% 0 50% 0;
-  background: linear-gradient(135deg, #fda4af, #f472b6);
-  animation-name: festival-petal;
-}
-.festival-fx--petals .festival-fx__bit:nth-child(3n) {
-  background: linear-gradient(135deg, #fde68a, #fbbf24);
-}
-.festival-fx--petals .festival-fx__bit:nth-child(3n+1) {
-  background: linear-gradient(135deg, #fecdd3, #fb7185);
-}
-
-/* Rakhi ribbons */
-.festival-fx--ribbon .festival-fx__glow {
-  background: radial-gradient(ellipse 40% 20% at 50% 0%, rgba(190, 24, 93, 0.12), transparent 70%);
-}
-.festival-fx--ribbon .festival-fx__bit {
-  width: 18px !important;
-  height: 4px !important;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #be185d, #f9a8d4, #fbbf24);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  animation-name: festival-ribbon;
-}
-
-/* Crescent / moon / soft glow */
-.festival-fx--crescent .festival-fx__glow,
-.festival-fx--moon .festival-fx__glow,
-.festival-fx--glow .festival-fx__glow {
-  background:
-    radial-gradient(ellipse 55% 40% at 70% 10%, rgba(253, 230, 138, 0.22), transparent 60%),
-    radial-gradient(ellipse 40% 30% at 20% 0%, rgba(147, 197, 253, 0.12), transparent 55%);
-}
-.festival-fx--crescent .festival-fx__bit,
-.festival-fx--moon .festival-fx__bit,
-.festival-fx--glow .festival-fx__bit {
-  background: radial-gradient(circle, #fef9c3 0%, #fde68a 40%, transparent 70%);
-  box-shadow: 0 0 12px rgba(253, 224, 71, 0.5);
-  animation-name: festival-glow-drift;
-}
-
-/* Snow / winter */
-.festival-fx--snow .festival-fx__glow {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 35%);
-}
-.festival-fx--snow .festival-fx__bit {
-  background: #fff;
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
-  animation-name: festival-snow;
-}
-
-/* Lohri / fire embers */
-.festival-fx--embers .festival-fx__glow {
-  background:
-    radial-gradient(ellipse 50% 45% at 50% 100%, rgba(251, 146, 60, 0.28), transparent 55%),
-    radial-gradient(ellipse 30% 25% at 40% 100%, rgba(220, 38, 38, 0.18), transparent 50%);
-}
-.festival-fx--embers .festival-fx__bit {
-  background: radial-gradient(circle, #fed7aa, #f97316 50%, #dc2626);
-  box-shadow: 0 0 8px rgba(249, 115, 22, 0.7);
-  animation-name: festival-ember;
-  top: auto;
-  bottom: -5%;
-}
-
-/* Harvest grains */
-.festival-fx--harvest .festival-fx__glow {
-  background: radial-gradient(ellipse 60% 25% at 50% 0%, rgba(250, 204, 21, 0.15), transparent 70%);
-}
-.festival-fx--harvest .festival-fx__bit {
-  border-radius: 40% 60% 40% 60%;
-  background: linear-gradient(180deg, #fde047, #eab308);
-  animation-name: festival-harvest;
-}
-
-/* Kites */
-.festival-fx--kites .festival-fx__glow {
-  background: radial-gradient(ellipse 70% 30% at 50% 100%, rgba(59, 130, 246, 0.1), transparent 60%);
-}
-.festival-fx--kites .festival-fx__bit {
-  border-radius: 0;
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  background: #ef4444;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  animation-name: festival-kite;
-  top: auto;
-  bottom: 5%;
-}
-.festival-fx--kites .festival-fx__bit:nth-child(3n) { background: #3b82f6; }
-.festival-fx--kites .festival-fx__bit:nth-child(3n+1) { background: #f59e0b; }
-.festival-fx--kites .festival-fx__bit:nth-child(3n+2) { background: #22c55e; }
-
-/* Independence tricolor */
-.festival-fx--tricolor .festival-fx__glow {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 153, 51, 0.1),
-    transparent 25%,
-    transparent 75%,
-    rgba(19, 136, 8, 0.1)
-  );
-}
-.festival-fx--tricolor .festival-fx__bit {
-  animation-name: festival-fall;
-}
-.festival-fx--tricolor .festival-fx__bit:nth-child(3n) { background: #ff9933; }
-.festival-fx--tricolor .festival-fx__bit:nth-child(3n+1) {
-  background: #fff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
-}
-.festival-fx--tricolor .festival-fx__bit:nth-child(3n+2) { background: #138808; }
-
-/* Soft gold shimmer */
-.festival-fx--shimmer .festival-fx__glow {
-  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(201, 168, 76, 0.18), transparent 65%);
-}
-.festival-fx--shimmer .festival-fx__bit {
-  background: radial-gradient(circle, #f5e6c8, #c9a84c);
-  box-shadow: 0 0 8px rgba(201, 168, 76, 0.45);
-  animation-name: festival-sparkle;
+  background: var(--fx-b, #c9a84c);
 }
 
 @keyframes festival-ambient {
-  0% { opacity: 0.3; }
+  0% { opacity: 0.28; }
   100% { opacity: 0.55; }
 }
-
 @keyframes festival-fall {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-    opacity: 0;
-  }
-  8% { opacity: 0.75; }
-  100% {
-    transform: translate3d(var(--drift, 20px), 115vh, 0) rotate(var(--spin, 180deg));
-    opacity: 0;
-  }
+  0% { transform: translate3d(0,0,0) rotate(0); opacity: 0; }
+  10% { opacity: 0.8; }
+  100% { transform: translate3d(var(--drift,20px),115vh,0) rotate(var(--spin,180deg)); opacity: 0; }
 }
-
-@keyframes festival-twinkle-fall {
-  0% {
-    transform: translate3d(0, 0, 0) scale(0.4);
-    opacity: 0;
-  }
+@keyframes festival-rise {
+  0% { transform: translate3d(0,0,0) scale(0.6); opacity: 0; }
+  15% { opacity: 0.95; }
+  100% { transform: translate3d(var(--drift,-20px),-110vh,0) scale(0.2); opacity: 0; }
+}
+@keyframes festival-twinkle {
+  0% { transform: translate3d(0,0,0) scale(0.3); opacity: 0; }
   12% { opacity: 1; }
-  40% {
-    transform: translate3d(calc(var(--drift, 0px) * 0.4), 40vh, 0) scale(1.35);
-  }
-  70% { opacity: 0.85; }
-  100% {
-    transform: translate3d(var(--drift, 20px), 115vh, 0) scale(0.3);
-    opacity: 0;
-  }
+  45% { transform: translate3d(calc(var(--drift,0px)*.4),42vh,0) scale(1.3); }
+  100% { transform: translate3d(var(--drift,20px),115vh,0) scale(0.25); opacity: 0; }
 }
-
-@keyframes festival-sparkle {
-  0% {
-    transform: translate3d(0, 0, 0) scale(0.2) rotate(0deg);
-    opacity: 0;
-  }
-  15% { opacity: 0.95; }
-  50% {
-    transform: translate3d(calc(var(--drift, 0px) * 0.5), 50vh, 0) scale(1.1) rotate(180deg);
-  }
-  100% {
-    transform: translate3d(var(--drift, 15px), 110vh, 0) scale(0.2) rotate(360deg);
-    opacity: 0;
-  }
+@keyframes festival-spin-fall {
+  0% { transform: translate3d(0,0,0) rotate(0) scale(.5); opacity: 0; }
+  12% { opacity: .9; }
+  100% { transform: translate3d(var(--drift,30px),115vh,0) rotate(var(--spin,360deg)) scale(1.1); opacity: 0; }
 }
-
-@keyframes festival-color-float {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.4);
-    opacity: 0;
-  }
-  15% { opacity: 0.85; }
-  100% {
-    transform: translate3d(var(--drift, 30px), 110vh, 0) rotate(var(--spin, 280deg)) scale(1.2);
-    opacity: 0;
-  }
+@keyframes festival-sway {
+  0% { transform: translate3d(0,0,0) rotate(-15deg); opacity: 0; }
+  15% { opacity: .9; }
+  50% { transform: translate3d(calc(var(--drift,0)*.5),50vh,0) rotate(10deg); }
+  100% { transform: translate3d(var(--drift,40px),115vh,0) rotate(40deg); opacity: 0; }
 }
-
-@keyframes festival-petal {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-    opacity: 0;
-  }
-  12% { opacity: 0.8; }
-  100% {
-    transform: translate3d(var(--drift, 40px), 115vh, 0) rotate(var(--spin, 400deg));
-    opacity: 0;
-  }
-}
-
-@keyframes festival-ribbon {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(-25deg);
-    opacity: 0;
-  }
-  15% { opacity: 0.9; }
-  50% {
-    transform: translate3d(calc(var(--drift, 0px) * 0.6), 50vh, 0) rotate(15deg);
-  }
-  100% {
-    transform: translate3d(var(--drift, 50px), 115vh, 0) rotate(55deg);
-    opacity: 0;
-  }
-}
-
-@keyframes festival-glow-drift {
-  0% {
-    transform: translate3d(0, 0, 0) scale(0.5);
-    opacity: 0;
-  }
-  25% { opacity: 0.75; }
-  100% {
-    transform: translate3d(var(--drift, 25px), 105vh, 0) scale(1.1);
-    opacity: 0;
-  }
-}
-
-@keyframes festival-snow {
-  0% {
-    transform: translate3d(0, 0, 0);
-    opacity: 0;
-  }
-  8% { opacity: 0.85; }
-  100% {
-    transform: translate3d(var(--drift, 35px), 115vh, 0);
-    opacity: 0;
-  }
-}
-
-@keyframes festival-ember {
-  0% {
-    transform: translate3d(0, 0, 0) scale(0.6);
-    opacity: 0;
-  }
-  15% { opacity: 0.95; }
-  100% {
-    transform: translate3d(var(--drift, -20px), -110vh, 0) scale(0.15);
-    opacity: 0;
-  }
-}
-
-@keyframes festival-harvest {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-    opacity: 0;
-  }
-  15% { opacity: 0.8; }
-  100% {
-    transform: translate3d(var(--drift, 25px), 115vh, 0) rotate(var(--spin, 120deg));
-    opacity: 0;
-  }
-}
-
 @keyframes festival-kite {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(-10deg);
-    opacity: 0;
-  }
-  12% { opacity: 0.95; }
-  50% {
-    transform: translate3d(calc(var(--drift, 40px) * 0.5), -50vh, 0) rotate(12deg);
-  }
-  100% {
-    transform: translate3d(var(--drift, 70px), -110vh, 0) rotate(28deg);
-    opacity: 0;
-  }
+  0% { transform: translate3d(0,0,0) rotate(-8deg); opacity: 0; }
+  12% { opacity: .95; }
+  100% { transform: translate3d(var(--drift,70px),-110vh,0) rotate(25deg); opacity: 0; }
 }
+@keyframes festival-burst {
+  0% { transform: translate3d(0,40vh,0) scale(0); opacity: 0; }
+  20% { opacity: 1; transform: translate3d(calc(var(--drift,0)*.3),20vh,0) scale(1.2); }
+  100% { transform: translate3d(var(--drift,50px),-20vh,0) scale(.2); opacity: 0; }
+}
+@keyframes festival-float-soft {
+  0% { transform: translate3d(0,20vh,0) scale(.4); opacity: 0; }
+  30% { opacity: .7; }
+  100% { transform: translate3d(var(--drift,25px),-40vh,0) scale(1); opacity: 0; }
+}
+
+/* New Year confetti */
+.festival-fx--confetti .festival-fx__glow {
+  background: radial-gradient(ellipse 70% 30% at 50% 0%, rgba(224,192,104,.25), transparent 70%);
+}
+.festival-fx--confetti .festival-fx__bit {
+  border-radius: 2px;
+  animation-name: festival-spin-fall;
+}
+.festival-fx--confetti .festival-fx__bit:nth-child(5n) { background: #e0c068; }
+.festival-fx--confetti .festival-fx__bit:nth-child(5n+1) { background: #4a0e2b; }
+.festival-fx--confetti .festival-fx__bit:nth-child(5n+2) { background: #f59e0b; }
+.festival-fx--confetti .festival-fx__bit:nth-child(5n+3) { background: #fff; box-shadow: 0 0 0 1px #ddd; }
+.festival-fx--confetti .festival-fx__bit:nth-child(5n+4) { background: #be123c; }
+
+/* Lohri / Holika fire */
+.festival-fx--bonfire .festival-fx__glow,
+.festival-fx--holika_fire .festival-fx__glow,
+.festival-fx--bihu_fire .festival-fx__glow,
+.festival-fx--victory_flame .festival-fx__glow {
+  background: radial-gradient(ellipse 50% 40% at 50% 100%, rgba(251,146,60,.3), transparent 55%);
+}
+.festival-fx--bonfire .festival-fx__bit,
+.festival-fx--holika_fire .festival-fx__bit,
+.festival-fx--bihu_fire .festival-fx__bit,
+.festival-fx--victory_flame .festival-fx__bit,
+.festival-fx--saffron_ember .festival-fx__bit {
+  top: auto; bottom: -4%;
+  background: radial-gradient(circle, #fed7aa, #f97316 55%, #dc2626);
+  box-shadow: 0 0 10px rgba(249,115,22,.7);
+  animation-name: festival-rise;
+}
+.festival-fx--victory_flame .festival-fx__bit {
+  background: radial-gradient(circle, #fde68a, #ea580c 50%, #7b1e3a);
+}
+
+/* Kites */
+.festival-fx--kites .festival-fx__bit {
+  top: auto; bottom: 8%;
+  border-radius: 0;
+  clip-path: polygon(50% 0,100% 50%,50% 100%,0 50%);
+  animation-name: festival-kite;
+}
+.festival-fx--kites .festival-fx__bit:nth-child(3n) { background: #ef4444; }
+.festival-fx--kites .festival-fx__bit:nth-child(3n+1) { background: #3b82f6; }
+.festival-fx--kites .festival-fx__bit:nth-child(3n+2) { background: #facc15; }
+
+/* Rice / wheat / grains */
+.festival-fx--rice_grain .festival-fx__bit,
+.festival-fx--nuakhai_grain .festival-fx__bit,
+.festival-fx--wheat .festival-fx__bit {
+  border-radius: 50% 50% 40% 40%;
+  background: linear-gradient(180deg, #fde047, #ca8a04);
+  animation-name: festival-spin-fall;
+}
+.festival-fx--wheat .festival-fx__bit { background: linear-gradient(180deg, #fef08a, #a16207); }
+.festival-fx--nuakhai_grain .festival-fx__bit { background: linear-gradient(180deg, #bef264, #65a30d); }
+
+/* Tricolor */
+.festival-fx--tricolor .festival-fx__bit:nth-child(3n),
+.festival-fx--tricolor_wave .festival-fx__bit:nth-child(3n) { background: #ff9933; }
+.festival-fx--tricolor .festival-fx__bit:nth-child(3n+1),
+.festival-fx--tricolor_wave .festival-fx__bit:nth-child(3n+1) { background: #fff; box-shadow: 0 0 0 1px #ccc; }
+.festival-fx--tricolor .festival-fx__bit:nth-child(3n+2),
+.festival-fx--tricolor_wave .festival-fx__bit:nth-child(3n+2) { background: #138808; }
+.festival-fx--tricolor_wave .festival-fx__glow {
+  background: linear-gradient(180deg, rgba(255,153,51,.12), transparent 30%, transparent 70%, rgba(19,136,8,.12));
+}
+.festival-fx--tricolor_wave .festival-fx__bit { animation-name: festival-sway; }
+
+/* Yellow petals / Basant */
+.festival-fx--yellow_petals .festival-fx__bit {
+  border-radius: 50% 0;
+  background: linear-gradient(135deg, #fef08a, #eab308);
+  animation-name: festival-spin-fall;
+}
+
+/* Soft glows (Shivratri, Ram Navami, etc.) */
+.festival-fx--bilva_glow .festival-fx__glow {
+  background: radial-gradient(ellipse 50% 35% at 50% 0%, rgba(148,163,184,.3), transparent 60%);
+}
+.festival-fx--bilva_glow .festival-fx__bit {
+  background: radial-gradient(circle, #e2e8f0, #64748b);
+  box-shadow: 0 0 12px rgba(148,163,184,.6);
+  animation-name: festival-twinkle;
+}
+.festival-fx--saffron_glow .festival-fx__bit,
+.festival-fx--wisdom_glow .festival-fx__bit,
+.festival-fx--nishan_glow .festival-fx__bit,
+.festival-fx--mountain_glow .festival-fx__bit,
+.festival-fx--soft_quill .festival-fx__bit {
+  background: radial-gradient(circle, #fef9c3, var(--fx-b));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--fx-b) 60%, transparent);
+  animation-name: festival-float-soft;
+}
+.festival-fx--wisdom_glow .festival-fx__bit { background: radial-gradient(circle, #ede9fe, #8b5cf6); }
+.festival-fx--nishan_glow .festival-fx__bit { background: radial-gradient(circle, #dbeafe, #1e3a8a); }
+.festival-fx--mountain_glow .festival-fx__bit { background: radial-gradient(circle, #dcfce7, #166534); }
+
+/* Prayer flags / Losar */
+.festival-fx--prayer_flags .festival-fx__bit {
+  width: 14px !important; height: 10px !important;
+  border-radius: 1px;
+  animation-name: festival-sway;
+}
+.festival-fx--prayer_flags .festival-fx__bit:nth-child(5n) { background: #ef4444; }
+.festival-fx--prayer_flags .festival-fx__bit:nth-child(5n+1) { background: #22c55e; }
+.festival-fx--prayer_flags .festival-fx__bit:nth-child(5n+2) { background: #3b82f6; }
+.festival-fx--prayer_flags .festival-fx__bit:nth-child(5n+3) { background: #fbbf24; }
+.festival-fx--prayer_flags .festival-fx__bit:nth-child(5n+4) { background: #fff; }
+
+/* Holi gulal */
+.festival-fx--gulal .festival-fx__glow {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(236,72,153,.2), transparent 40%),
+    radial-gradient(circle at 80% 5%, rgba(139,92,246,.18), transparent 40%),
+    radial-gradient(circle at 50% 0%, rgba(245,158,11,.15), transparent 45%);
+}
+.festival-fx--gulal .festival-fx__bit,
+.festival-fx--pot_colors .festival-fx__bit,
+.festival-fx--bihu_dance .festival-fx__bit {
+  border-radius: 40% 60% 55% 45%;
+  filter: blur(.4px);
+  animation-name: festival-spin-fall;
+}
+.festival-fx--gulal .festival-fx__bit:nth-child(5n) { background: #ec4899; }
+.festival-fx--gulal .festival-fx__bit:nth-child(5n+1) { background: #8b5cf6; }
+.festival-fx--gulal .festival-fx__bit:nth-child(5n+2) { background: #f59e0b; }
+.festival-fx--gulal .festival-fx__bit:nth-child(5n+3) { background: #22c55e; }
+.festival-fx--gulal .festival-fx__bit:nth-child(5n+4) { background: #3b82f6; }
+
+/* Garba / Navratri */
+.festival-fx--garba .festival-fx__bit,
+.festival-fx--garba_night .festival-fx__bit {
+  border-radius: 50% 0;
+  background: linear-gradient(135deg, #fb7185, #be123c);
+  animation-name: festival-spin-fall;
+}
+.festival-fx--garba_night .festival-fx__bit:nth-child(3n) {
+  background: linear-gradient(135deg, #fde68a, #f59e0b);
+}
+.festival-fx--garba_night .festival-fx__glow {
+  background: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(190,18,60,.18), transparent 65%);
+}
+
+/* Mango leaf / Onam pookalam / petals */
+.festival-fx--mango_leaf .festival-fx__bit {
+  border-radius: 0 80% 0 80%;
+  background: linear-gradient(135deg, #86efac, #15803d);
+  animation-name: festival-sway;
+}
+.festival-fx--pookalam .festival-fx__bit,
+.festival-fx--dhak_petals .festival-fx__bit {
+  border-radius: 50% 0;
+  animation-name: festival-spin-fall;
+}
+.festival-fx--pookalam .festival-fx__bit:nth-child(4n) { background: #facc15; }
+.festival-fx--pookalam .festival-fx__bit:nth-child(4n+1) { background: #f472b6; }
+.festival-fx--pookalam .festival-fx__bit:nth-child(4n+2) { background: #fb923c; }
+.festival-fx--pookalam .festival-fx__bit:nth-child(4n+3) { background: #4ade80; }
+.festival-fx--dhak_petals .festival-fx__bit {
+  background: linear-gradient(135deg, #fecdd3, #be123c);
+}
+
+/* Gudi flag */
+.festival-fx--gudi .festival-fx__bit {
+  width: 8px !important; height: 16px !important;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #facc15, #b91c1c);
+  animation-name: festival-sway;
+}
+
+/* Lotus */
+.festival-fx--lotus_blue .festival-fx__bit,
+.festival-fx--lotus_moon .festival-fx__bit {
+  border-radius: 50% 50% 0 50%;
+  background: linear-gradient(135deg, #bfdbfe, #1d4ed8);
+  animation-name: festival-float-soft;
+}
+.festival-fx--lotus_moon .festival-fx__glow {
+  background: radial-gradient(ellipse 40% 30% at 70% 10%, rgba(253,230,138,.25), transparent 55%);
+}
+.festival-fx--lotus_moon .festival-fx__bit {
+  background: linear-gradient(135deg, #ddd6fe, #5b21b6);
+}
+
+/* Vishu gold / kolam / coins */
+.festival-fx--vishu_kani .festival-fx__bit,
+.festival-fx--kolam .festival-fx__bit,
+.festival-fx--gold_coins .festival-fx__bit,
+.festival-fx--dhanteras_gold .festival-fx__bit,
+.festival-fx--ganesh_modak .festival-fx__bit {
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fef9c3, #eab308 60%, #92400e);
+  box-shadow: 0 0 8px rgba(234,179,8,.5);
+  animation-name: festival-twinkle;
+}
+.festival-fx--kolam .festival-fx__bit {
+  clip-path: polygon(50% 0,100% 50%,50% 100%,0 50%);
+  border-radius: 0;
+  background: #fbbf24;
+}
+.festival-fx--ganesh_modak .festival-fx__bit {
+  border-radius: 50% 50% 40% 40%;
+  background: linear-gradient(180deg, #fdba74, #c2410c);
+}
+
+/* Solemn */
+.festival-fx--solemn .festival-fx__bit,
+.festival-fx--solemn_soft .festival-fx__bit {
+  background: radial-gradient(circle, #d6d3d1, #78716c);
+  opacity: .35 !important;
+  animation-name: festival-float-soft;
+  animation-duration: 14s !important;
+}
+
+/* Easter pastels */
+.festival-fx--pastel_egg .festival-fx__bit {
+  border-radius: 50% 50% 45% 45%;
+  animation-name: festival-spin-fall;
+}
+.festival-fx--pastel_egg .festival-fx__bit:nth-child(4n) { background: #f9a8d4; }
+.festival-fx--pastel_egg .festival-fx__bit:nth-child(4n+1) { background: #a5b4fc; }
+.festival-fx--pastel_egg .festival-fx__bit:nth-child(4n+2) { background: #86efac; }
+.festival-fx--pastel_egg .festival-fx__bit:nth-child(4n+3) { background: #fde68a; }
+
+/* Crescent moons */
+.festival-fx--crescent .festival-fx__bit,
+.festival-fx--crescent_teal .festival-fx__bit,
+.festival-fx--crescent_gold .festival-fx__bit,
+.festival-fx--moonrise .festival-fx__bit {
+  background: radial-gradient(circle at 35% 35%, #fef9c3 0%, #fde68a 40%, transparent 58%);
+  box-shadow: 0 0 16px rgba(253,224,71,.45);
+  animation-name: festival-float-soft;
+}
+.festival-fx--crescent_teal .festival-fx__glow {
+  background: radial-gradient(ellipse 50% 30% at 70% 8%, rgba(45,212,191,.2), transparent 55%);
+}
+.festival-fx--moonrise .festival-fx__glow {
+  background: radial-gradient(ellipse 45% 35% at 75% 12%, rgba(253,230,138,.28), transparent 55%);
+}
+
+/* Rath chariot petals */
+.festival-fx--chariot .festival-fx__bit {
+  border-radius: 50% 0;
+  background: linear-gradient(135deg, #fde047, #b45309);
+  animation-name: festival-sway;
+}
+
+/* Rakhi / sibling ribbons */
+.festival-fx--rakhi_ribbon .festival-fx__bit,
+.festival-fx--sibling_ribbon .festival-fx__bit {
+  width: 18px !important; height: 4px !important;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #be185d, #f9a8d4, #fbbf24);
+  animation-name: festival-sway;
+}
+.festival-fx--sibling_ribbon .festival-fx__bit {
+  background: linear-gradient(90deg, #9b1b4a, #fbcfe8);
+}
+
+/* Nag Panchami */
+.festival-fx--serpent_green .festival-fx__bit {
+  width: 14px !important; height: 4px !important;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #166534, #a3e635);
+  animation-name: festival-sway;
+}
+
+/* Peacock / Janmashtami */
+.festival-fx--peacock .festival-fx__bit {
+  border-radius: 50% 0 50% 0;
+  background: linear-gradient(135deg, #38bdf8, #1d4ed8 50%, #fbbf24);
+  animation-name: festival-spin-fall;
+}
+
+/* Sparks */
+.festival-fx--navroz_spark .festival-fx__bit,
+.festival-fx--craft_sparks .festival-fx__bit,
+.festival-fx--shimmer .festival-fx__bit {
+  background: radial-gradient(circle, #fff7ed, var(--fx-b));
+  box-shadow: 0 0 8px var(--fx-b);
+  clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  border-radius: 0;
+  animation-name: festival-twinkle;
+}
+
+/* Diwali lights */
+.festival-fx--diya_lights .festival-fx__glow,
+.festival-fx--diya_small .festival-fx__glow {
+  background:
+    radial-gradient(ellipse 55% 35% at 20% 0%, rgba(251,191,36,.35), transparent 60%),
+    radial-gradient(ellipse 45% 30% at 80% 5%, rgba(234,179,8,.28), transparent 55%);
+}
+.festival-fx--diya_lights .festival-fx__bit,
+.festival-fx--diya_small .festival-fx__bit {
+  background: radial-gradient(circle, #fff7c2 0%, #fbbf24 45%, transparent 72%);
+  box-shadow: 0 0 12px 2px rgba(251,191,36,.65);
+  animation-name: festival-twinkle;
+}
+.festival-fx--diya_small .festival-fx__bit { width: 5px !important; height: 5px !important; }
+
+/* Chhath sun rays */
+.festival-fx--sun_rays .festival-fx__glow {
+  background: radial-gradient(ellipse 60% 40% at 50% 100%, rgba(251,146,60,.28), transparent 55%);
+}
+.festival-fx--sun_rays .festival-fx__bit {
+  top: auto; bottom: -2%;
+  background: linear-gradient(180deg, #fdba74, transparent);
+  width: 3px !important; height: 28px !important;
+  border-radius: 2px;
+  animation-name: festival-rise;
+}
+
+/* Balloons */
+.festival-fx--balloons .festival-fx__bit {
+  top: auto; bottom: -5%;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation-name: festival-rise;
+}
+.festival-fx--balloons .festival-fx__bit:nth-child(4n) { background: #f472b6; }
+.festival-fx--balloons .festival-fx__bit:nth-child(4n+1) { background: #60a5fa; }
+.festival-fx--balloons .festival-fx__bit:nth-child(4n+2) { background: #facc15; }
+.festival-fx--balloons .festival-fx__bit:nth-child(4n+3) { background: #4ade80; }
+
+/* Christmas snow */
+.festival-fx--snow_pine .festival-fx__glow {
+  background: linear-gradient(180deg, rgba(255,255,255,.14), transparent 40%);
+}
+.festival-fx--snow_pine .festival-fx__bit {
+  background: #fff;
+  box-shadow: 0 0 5px rgba(255,255,255,.9);
+  animation-name: festival-fall;
+}
+
+/* Hornbill feathers */
+.festival-fx--tribal_feather .festival-fx__bit {
+  border-radius: 80% 0;
+  background: linear-gradient(135deg, #fb923c, #9a3412);
+  animation-name: festival-sway;
+}
+.festival-fx--tribal_feather .festival-fx__bit:nth-child(3n) {
+  background: linear-gradient(135deg, #fbbf24, #b45309);
+}
+
+/* New Year fireworks */
+.festival-fx--fireworks .festival-fx__bit {
+  top: 30%;
+  background: radial-gradient(circle, #fff, var(--fx-b));
+  box-shadow: 0 0 10px var(--fx-b);
+  animation-name: festival-burst;
+}
+.festival-fx--fireworks .festival-fx__bit:nth-child(3n) { background: #fbbf24; box-shadow: 0 0 12px #f59e0b; }
+.festival-fx--fireworks .festival-fx__bit:nth-child(3n+1) { background: #f472b6; box-shadow: 0 0 12px #ec4899; }
+.festival-fx--fireworks .festival-fx__bit:nth-child(3n+2) { background: #60a5fa; box-shadow: 0 0 12px #3b82f6; }
 
 @media (prefers-reduced-motion: reduce) {
   .festival-fx { display: none; }

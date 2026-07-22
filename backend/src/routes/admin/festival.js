@@ -22,47 +22,37 @@ router.get('/', async (_req, res) => {
   }
 });
 
+/** Admin only sets festival + dates; everything else comes from preset */
 router.put('/', async (req, res) => {
   try {
-    const {
-      enabled,
-      festival_key,
-      label,
-      tagline,
-      badge_text,
-      show_badge,
-      announcements,
-      starts_at,
-      ends_at,
-    } = req.body;
-
+    const { enabled, festival_key, starts_at, ends_at } = req.body;
     const key = (festival_key || 'none').trim();
     const preset = FESTIVAL_PRESETS[key] || FESTIVAL_PRESETS.none;
+    const isOn = key === 'none' ? false : Boolean(enabled);
 
     const { rows } = await pool.query(
       `UPDATE festival_settings SET
-        enabled = COALESCE($1, enabled),
-        festival_key = COALESCE($2, festival_key),
-        label = COALESCE($3, label),
-        tagline = COALESCE($4, tagline),
-        badge_text = COALESCE($5, badge_text),
-        show_badge = COALESCE($6, show_badge),
-        announcements = COALESCE($7, announcements),
-        accent_primary = $8,
-        accent_secondary = $9,
-        accent_bg = $10,
-        starts_at = $11,
-        ends_at = $12,
+        enabled = $1,
+        festival_key = $2,
+        label = $3,
+        tagline = $4,
+        badge_text = $5,
+        show_badge = true,
+        announcements = $6,
+        accent_primary = $7,
+        accent_secondary = $8,
+        accent_bg = $9,
+        starts_at = $10,
+        ends_at = $11,
         updated_at = NOW()
        WHERE id = 1 RETURNING *`,
       [
-        enabled,
+        isOn,
         key,
-        label != null ? String(label).trim() : null,
-        tagline != null ? String(tagline).trim() : null,
-        badge_text != null ? String(badge_text).trim() : null,
-        show_badge,
-        announcements != null ? String(announcements) : null,
+        preset.label || '',
+        preset.tagline || '',
+        preset.badge_text || '',
+        preset.announcements || '',
         preset.accent_primary || '#7B1E3A',
         preset.accent_secondary || '#C9A84C',
         preset.accent_bg || '#FAF7F2',

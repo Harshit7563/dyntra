@@ -55,19 +55,19 @@ export function toPublicFestival(row) {
     };
   }
 
-  // Colours always come from the festival preset — never admin-picked
+  // Everything visual comes from the festival preset — admin only picks festival + dates
   return {
     active: true,
     festival_key: key,
-    label: row.label || preset.label || '',
-    tagline: row.tagline || preset.tagline || '',
-    badge_text: row.badge_text || preset.badge_text || '',
-    show_badge: row.show_badge !== false,
-    announcements: parseAnnouncements(row.announcements || preset.announcements),
+    label: preset.label || '',
+    tagline: preset.tagline || '',
+    badge_text: preset.badge_text || '',
+    show_badge: true,
+    announcements: parseAnnouncements(preset.announcements),
     accent_primary: preset.accent_primary || '#7B1E3A',
     accent_secondary: preset.accent_secondary || '#C9A84C',
     accent_bg: preset.accent_bg || '#FAF7F2',
-    animation: preset.animation || 'shimmer',
+    animation: preset.animation || key,
     starts_at: row.starts_at,
     ends_at: row.ends_at,
   };
