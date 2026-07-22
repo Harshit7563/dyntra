@@ -203,6 +203,20 @@ router.post('/build-url', async (req, res) => {
   }
 });
 
+router.get('/webhook', (_req, res) => {
+  res.json({
+    ok: true,
+    message: 'Dyntra payment webhook is live. BrightPay must POST JSON here (not GET in browser).',
+    accept: ['POST'],
+    example: {
+      intent_status: 'SUCCESS',
+      payer_order_id: 'ORDER123',
+      amount: 100,
+      utr: '967584537583',
+    },
+  });
+});
+
 router.post('/webhook', async (req, res) => {
   try {
     const body = req.body || {};
@@ -277,6 +291,13 @@ router.post('/webhook', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+router.get('/brightpay-callback', (_req, res) => {
+  res.json({
+    ok: true,
+    message: 'BrightPay callback endpoint ready. Use POST with intent_status + payer_order_id.',
+  });
 });
 
 router.post('/brightpay-callback', async (req, res) => {
