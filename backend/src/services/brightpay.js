@@ -1,8 +1,7 @@
 /**
  * BrightPay (brightpay.co.in)
  * Auth header: Token: <base64(rawJwt)>
- * generate_intent → intent_link (upi://...)
- * intent_status → PENDING | SUCCESS | FAILED
+ * Optional: BRIGHTPAY_PROXY_URL — forward via whitelisted IP server (e.g. 82.180.141.135)
  */
 
 const DEFAULT_INTENT_API = 'https://brightpay.co.in/merchant/api/generate_intent';
@@ -11,19 +10,10 @@ const DEFAULT_STATUS_API = 'https://brightpay.co.in/merchant/api/intent_status';
 export function encodeBrightPayToken(rawToken) {
   const raw = String(rawToken || '').trim();
   if (!raw) return '';
-  // Already base64 (no JWT dots)
   if (!raw.includes('.') && /^[A-Za-z0-9+/=]+$/.test(raw) && raw.length > 40) {
     return raw;
   }
   return Buffer.from(raw, 'utf8').toString('base64');
-}
-
-function authHeaders(rawToken) {
-  return {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-    Token: encodeBrightPayToken(rawToken),
-  };
 }
 
 function resolveToken(gatewayToken) {
@@ -34,10 +24,44 @@ function resolveToken(gatewayToken) {
   return raw;
 }
 
-async function postBrightPay(url, rawToken, body) {
-  const res = await fetch(url, {
+function proxyBase() {
+  return String(process.env.BRIGHTPAY_PROXY_URL || '').trim().replace(/\/$/, '');
+}
+
+async function postBrightPay(directUrl, rawToken, body, proxyPath) {
+  const base = proxyBase();
+
+  // Route via whitelisted-IP proxy (82.180.141.135)
+  if (base) {
+    const headers = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+    const secret = process.env.BRIGHTPAY_PROXY_SECRET || '';
+    if (secret) headers['X-Proxy-Secret'] = secret;
+
+    const res = await fetch(`${base}${proxyPath}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body || {}),
+    });
+    const text = await res.text();
+    let data;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      throw new Error(`BrightPay proxy non-JSON (${res.status}): ${text.slice(0, 200)}`);
+    }
+    return { res, data, text };
+  }
+
+  const res = await fetch(directUrl, {
     method: 'POST',
-    headers: authHeaders(rawToken),
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Token: encodeBrightPayToken(rawToken),
+    },
     body: JSON.stringify(body || {}),
   });
   const text = await res.text();
@@ -50,9 +74,6 @@ async function postBrightPay(url, rawToken, body) {
   return { res, data, text };
 }
 
-/**
- * Create UPI payment intent
- */
 export async function createBrightPayIntent(opts) {
   const rawToken = resolveToken(opts.rawToken);
   const apiUrl = (opts.apiUrl || process.env.BRIGHTPAY_API_URL || DEFAULT_INTENT_API).trim();
@@ -70,11 +91,12 @@ export async function createBrightPayIntent(opts) {
     amount: Number(opts.amount),
   };
 
-  const { res, data } = await postBrightPay(apiUrl, rawToken, body);
+  const { res, data } = await postBrightPay(apiUrl, rawToken, body, '/generate_intent');
   const flag = String(data.flag || '').toUpperCase();
+  const errMsg = data.flag_message || data.message || data.error || `BrightPay error (${res.status})`;
 
   if (!res.ok || flag === 'ERROR') {
-    throw new Error(data.flag_message || data.message || data.error || `BrightPay error (${res.status})`);
+    throw new Error(errMsg);
   }
 
   const intentLink = String(data.intent_link || data.intent_uri || '').trim();
@@ -91,9 +113,6 @@ export async function createBrightPayIntent(opts) {
   };
 }
 
-/**
- * Check pay-in status for an order
- */
 export async function fetchBrightPayIntentStatus(opts) {
   const rawToken = resolveToken(opts.rawToken);
   const apiUrl = (
@@ -102,13 +121,16 @@ export async function fetchBrightPayIntentStatus(opts) {
     DEFAULT_STATUS_API
   ).trim();
 
-  const { res, data } = await postBrightPay(apiUrl, rawToken, {
-    payer_order_id: String(opts.orderNumber),
-  });
+  const { res, data } = await postBrightPay(
+    apiUrl,
+    rawToken,
+    { payer_order_id: String(opts.orderNumber) },
+    '/intent_status'
+  );
 
   const flag = String(data.flag || '').toUpperCase();
   if (!res.ok || flag === 'ERROR') {
-    throw new Error(data.flag_message || data.message || `BrightPay status error (${res.status})`);
+    throw new Error(data.flag_message || data.message || data.error || `BrightPay status error (${res.status})`);
   }
 
   return {
