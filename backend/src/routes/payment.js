@@ -94,6 +94,7 @@ router.get('/config', async (_req, res) => {
       );
       if (rows.length) {
         activeGateway = sanitizeGateway(rows[0]);
+        activeGateway._is_brightpay = isBrightPayGateway(rows[0]);
       }
     }
 
@@ -114,12 +115,21 @@ router.get('/config', async (_req, res) => {
           : 'Pay instantly via UPI, PhonePe or GPay',
       });
     }
-    if (activeGateway?.payment_url) {
+    // BrightPay has no payment_url (uses generate_intent) — still show Pay Online
+    if (activeGateway && (activeGateway.payment_url || activeGateway._is_brightpay || activeGateway.provider === 'brightpay')) {
       methods.push({
         id: 'online',
         label: `Pay Online (${activeGateway.name})`,
-        desc: activeGateway.test_mode ? 'Test mode — redirect to payment gateway' : 'Secure online payment',
+        desc: activeGateway._is_brightpay || activeGateway.provider === 'brightpay'
+          ? 'Pay via UPI (BrightPay)'
+          : activeGateway.test_mode
+            ? 'Test mode — redirect to payment gateway'
+            : 'Secure online payment',
       });
+    }
+
+    if (activeGateway) {
+      delete activeGateway._is_brightpay;
     }
 
     res.json({
