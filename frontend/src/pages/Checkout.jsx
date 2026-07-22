@@ -111,7 +111,7 @@ export default function Checkout() {
 
       if (form.payment_method === 'online') {
         sessionStorage.setItem(`order-email-${order.order_number}`, form.email.trim().toLowerCase());
-        const { payment_url } = await buildPaymentRedirect({
+        const pay = await buildPaymentRedirect({
           order_number: order.order_number,
           total: order.total,
           email: form.email,
@@ -119,7 +119,18 @@ export default function Checkout() {
           customer_name: form.customer_name,
         });
         clearCart();
-        window.location.href = payment_url;
+        // BrightPay returns UPI intent — open in-app pay page (not https redirect)
+        if (pay.provider === 'brightpay' || pay.intent_link) {
+          navigate(
+            `/pay-brightpay/${order.order_number}?email=${encodeURIComponent(form.email.trim().toLowerCase())}`,
+            { state: { order, intent_link: pay.intent_link } }
+          );
+          return;
+        }
+        if (!pay.payment_url) {
+          throw new Error('Payment gateway did not return a payment link');
+        }
+        window.location.href = pay.payment_url;
         return;
       }
 

@@ -118,6 +118,23 @@ export async function fetchUpiCheckout(orderNumber, email) {
   return parseJson(res);
 }
 
+export async function fetchBrightPayCheckout(orderNumber, email) {
+  const qs = new URLSearchParams({ email });
+  const res = await fetch(
+    `${API_BASE}/payment/brightpay-checkout/${encodeURIComponent(orderNumber)}?${qs}`
+  );
+  return parseJson(res);
+}
+
+export async function pollBrightPayStatus(orderNumber, email) {
+  const res = await fetch(`${API_BASE}/payment/brightpay-status`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order_number: orderNumber, email }),
+  });
+  return parseJson(res);
+}
+
 export async function submitContactForm(data) {
   const res = await fetch(`${API_BASE}/contact`, {
     method: 'POST',

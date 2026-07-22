@@ -32,12 +32,14 @@ import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminPayment from './pages/admin/AdminPayment';
 import AdminFestival from './pages/admin/AdminFestival';
 import UpiPay from './pages/UpiPay';
+import BrightPayPay from './pages/BrightPayPay';
 import NotFound from './pages/NotFound';
 
 export default function App() {
   return (
     <Routes>
       <Route path="/pay/:orderNumber" element={<UpiPay />} />
+      <Route path="/pay-brightpay/:orderNumber" element={<BrightPayPay />} />
 
       <Route element={<Layout />}>
         <Route index element={<Home />} />

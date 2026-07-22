@@ -4,6 +4,7 @@ import AdminAlert from '../../components/admin/AdminAlert';
 import { useAdminAction } from '../../hooks/useAdminAction';
 
 const PROVIDERS = [
+  { id: 'brightpay', label: 'BrightPay' },
   { id: 'custom', label: 'Custom / Any Gateway' },
   { id: 'razorpay', label: 'Razorpay' },
   { id: 'paytm', label: 'Paytm' },
@@ -13,25 +14,35 @@ const PROVIDERS = [
   { id: 'stripe', label: 'Stripe' },
 ];
 
-const URL_HELP = 'Payment URL placeholders: {amount} {order_number} {email} {phone} {name} {callback_url}. Callback should include ?payment=success&email={email}. Webhook: POST /api/payment/webhook with header X-Payment-Secret.';
+const URL_HELP =
+  'BrightPay: set Provider = BrightPay, paste raw JWT in API Key, leave Payment URL empty. Others: placeholders {amount} {order_number} {email} {phone} {name} {callback_url}. Callback must include ?payment=success&email={email}.';
 
 const emptyGateway = {
   name: '',
-  provider: 'custom',
+  provider: 'brightpay',
   payment_url: '',
-  api_url: '',
+  api_url: 'https://brightpay.co.in/merchant/api/generate_intent',
   ip_whitelist: '',
   merchant_id: '',
   api_key: '',
   secret_key: '',
   callback_url: 'https://dyntra.in/order-success/{order_number}?payment=success&email={email}',
-  webhook_url: 'http://localhost:5001/api/payment/webhook',
+  webhook_url: 'https://dyntra.in/api/payment/webhook',
   is_enabled: true,
-  test_mode: true,
-  notes: '',
+  test_mode: false,
+  notes: 'Paste raw JWT in API Key. Set BrightPay Payin Callback to https://dyntra.in/api/payment/webhook',
 };
 
 const PRESETS = {
+  brightpay: {
+    name: 'BrightPay',
+    payment_url: '',
+    api_url: 'https://brightpay.co.in/merchant/api/generate_intent',
+    callback_url: 'https://dyntra.in/order-success/{order_number}?payment=success&email={email}',
+    webhook_url: 'https://dyntra.in/api/payment/webhook',
+    notes: 'Paste raw JWT in API Key. Callback URL in BrightPay dashboard: https://dyntra.in/api/payment/webhook (or /api/payment/brightpay-callback). Whitelist IP if required: 82.180.141.135',
+    test_mode: false,
+  },
   razorpay: {
     payment_url: 'https://your-payment-page.com/pay?amount={amount}&order_id={order_number}&email={email}&phone={phone}',
     api_url: 'https://api.razorpay.com/v1/',
@@ -86,8 +97,13 @@ export default function AdminPayment() {
     setForm((prev) => ({
       ...prev,
       provider,
-      payment_url: prev.payment_url || preset.payment_url,
-      api_url: prev.api_url || preset.api_url,
+      name: preset.name || prev.name || (provider === 'brightpay' ? 'BrightPay' : prev.name),
+      payment_url: preset.payment_url ?? prev.payment_url,
+      api_url: preset.api_url ?? prev.api_url,
+      callback_url: preset.callback_url || prev.callback_url,
+      webhook_url: preset.webhook_url || prev.webhook_url,
+      notes: preset.notes || prev.notes,
+      test_mode: preset.test_mode ?? prev.test_mode,
     }));
   };
 
@@ -156,7 +172,7 @@ export default function AdminPayment() {
     <div className="max-w-3xl">
       <h1 className="font-serif text-2xl sm:text-3xl text-maroon mb-2">Payment Gateway</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Add any payment gateway — just paste URL, API endpoint, Merchant ID &amp; keys. No code changes needed.
+        BrightPay: choose provider BrightPay, paste JWT in API Key, Activate. Checkout “Pay Online” will call generate_intent.
       </p>
 
       <AdminAlert message={alert.message} type={alert.type} onClose={clearAlert} />
@@ -203,12 +219,31 @@ export default function AdminPayment() {
               </div>
 
               <div>
-                <label className="block text-xs uppercase text-gray-500 mb-1">Payment URL (redirect link) *</label>
-                <input required value={form.payment_url} onChange={(e) => setForm({ ...form, payment_url: e.target.value })} placeholder="https://gateway.com/pay?amount={amount}&order={order_number}" className="w-full px-3 py-2 border text-sm font-mono text-xs" />
+                <label className="block text-xs uppercase text-gray-500 mb-1">
+                  Payment URL (redirect link){form.provider === 'brightpay' ? ' — optional for BrightPay' : ' *'}
+                </label>
+                <input
+                  required={form.provider !== 'brightpay'}
+                  value={form.payment_url}
+                  onChange={(e) => setForm({ ...form, payment_url: e.target.value })}
+                  placeholder={
+                    form.provider === 'brightpay'
+                      ? 'Leave empty — BrightPay uses generate_intent API'
+                      : 'https://gateway.com/pay?amount={amount}&order={order_number}'
+                  }
+                  className="w-full px-3 py-2 border text-sm font-mono text-xs"
+                />
               </div>
               <div>
-                <label className="block text-xs uppercase text-gray-500 mb-1">API URL / IP</label>
-                <input value={form.api_url} onChange={(e) => setForm({ ...form, api_url: e.target.value })} placeholder="https://api.gateway.com/v1/ or IP: 103.x.x.x" className="w-full px-3 py-2 border text-sm font-mono text-xs" />
+                <label className="block text-xs uppercase text-gray-500 mb-1">
+                  {form.provider === 'brightpay' ? 'API URL (generate_intent)' : 'API URL / IP'}
+                </label>
+                <input
+                  value={form.api_url}
+                  onChange={(e) => setForm({ ...form, api_url: e.target.value })}
+                  placeholder="https://brightpay.co.in/merchant/api/generate_intent"
+                  className="w-full px-3 py-2 border text-sm font-mono text-xs"
+                />
               </div>
               <div>
                 <label className="block text-xs uppercase text-gray-500 mb-1">IP Whitelist (optional)</label>
@@ -220,8 +255,16 @@ export default function AdminPayment() {
                   <input value={form.merchant_id} onChange={(e) => setForm({ ...form, merchant_id: e.target.value })} className="w-full px-3 py-2 border text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs uppercase text-gray-500 mb-1">API Key</label>
-                  <input value={form.api_key} onChange={(e) => setForm({ ...form, api_key: e.target.value })} className="w-full px-3 py-2 border text-sm" />
+                  <label className="block text-xs uppercase text-gray-500 mb-1">
+                    {form.provider === 'brightpay' ? 'BrightPay JWT Token (API Key) *' : 'API Key'}
+                  </label>
+                  <input
+                    required={form.provider === 'brightpay'}
+                    value={form.api_key}
+                    onChange={(e) => setForm({ ...form, api_key: e.target.value })}
+                    placeholder={form.provider === 'brightpay' ? 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...' : ''}
+                    className="w-full px-3 py-2 border text-sm font-mono text-xs"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs uppercase text-gray-500 mb-1">Secret Key</label>

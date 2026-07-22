@@ -4,6 +4,7 @@ import { buildPaymentUrl, sanitizeGateway } from '../utils/paymentUrl.js';
 import { sendOrderNotifications } from '../services/notifications.js';
 import { FRONTEND_URL } from '../config/company.js';
 import { COD_MAX_PRODUCT_PRICE } from '../config/payment.js';
+import { createBrightPayIntent, fetchBrightPayIntentStatus, isBrightPayGateway, getActiveBrightPayGateway } from '../services/brightpay.js';
 
 const router = Router();
 
@@ -147,12 +148,38 @@ router.post('/build-url', async (req, res) => {
       'SELECT * FROM payment_gateways WHERE id = $1 AND is_enabled = true',
       [settings.active_gateway_id]
     );
-    if (!rows.length || !rows[0].payment_url) {
-      return res.status(400).json({ error: 'Active gateway has no payment URL set' });
+    if (!rows.length) {
+      return res.status(400).json({ error: 'Active gateway not found or disabled' });
     }
 
     const gateway = rows[0];
     const callbackUrl = buildCallbackUrl(gateway, order_number, email);
+
+    // BrightPay: UPI intent (upi://) — frontend opens /pay-brightpay page
+    if (isBrightPayGateway(gateway)) {
+      const intent = await createBrightPayIntent({
+        rawToken: gateway.api_key || process.env.BRIGHTPAY_TOKEN,
+        apiUrl: gateway.api_url || process.env.BRIGHTPAY_API_URL,
+        orderNumber: order_number,
+        name,
+        email,
+        mobile: phone,
+        amount,
+      });
+      return res.json({
+        provider: 'brightpay',
+        gateway_name: gateway.name || 'BrightPay',
+        intent_link: intent.intent_link,
+        payer_order_id: intent.payer_order_id,
+        order_number,
+        // no https payment_url — checkout must open BrightPay pay page
+        payment_url: null,
+      });
+    }
+
+    if (!gateway.payment_url) {
+      return res.status(400).json({ error: 'Active gateway has no payment URL set' });
+    }
 
     const payment_url = buildPaymentUrl(gateway.payment_url, {
       amount,
@@ -178,14 +205,67 @@ router.post('/build-url', async (req, res) => {
 
 router.post('/webhook', async (req, res) => {
   try {
+    const body = req.body || {};
+    const isBrightPayPayload = body.intent_status != null || body.payout_status != null;
+
     const webhookSecret = process.env.PAYMENT_WEBHOOK_SECRET;
-    if (webhookSecret && req.headers['x-payment-secret'] !== webhookSecret) {
+    if (webhookSecret && !isBrightPayPayload && req.headers['x-payment-secret'] !== webhookSecret) {
       return res.status(401).json({ error: 'Invalid webhook secret' });
     }
 
-    const orderNumber = req.body.order_number || req.body.order_id || req.body.orderId;
+    // BrightPay pay-in: {"intent_status":"SUCCESS","payer_order_id":"...","amount":100,"utr":"..."}
+    if (body.intent_status != null) {
+      const orderNumber = String(body.payer_order_id || '');
+      const status = String(body.intent_status).toUpperCase();
+      if (!orderNumber) return res.status(400).json({ error: 'payer_order_id required' });
+      if (status !== 'SUCCESS') {
+        return res.json({ received: true, confirmed: false, reason: status, order_number: orderNumber });
+      }
+      const order = await confirmOrderPayment(orderNumber);
+      if (!order) {
+        return res.json({
+          received: true,
+          message: 'Order already confirmed or not found',
+          order_number: orderNumber,
+        });
+      }
+      return res.json({
+        received: true,
+        confirmed: true,
+        order_number: order.order_number,
+        utr: body.utr || '',
+      });
+    }
+
+    if (body.payout_status != null) {
+      return res.json({ received: true, ignored: true, type: 'payout' });
+    }
+
+    const status = String(
+      body.status || body.payment_status || body.txn_status || body.data?.status || ''
+    ).toLowerCase();
+    const failed =
+      status.includes('fail') ||
+      status.includes('cancel') ||
+      status === '0' ||
+      status === 'false';
+
+    const orderNumber =
+      body.order_number ||
+      body.order_id ||
+      body.orderId ||
+      body.payer_order_id ||
+      body.payerOrderId ||
+      body.data?.payer_order_id ||
+      body.data?.order_number ||
+      body.data?.order_id;
+
     if (!orderNumber) {
-      return res.status(400).json({ error: 'order_number required in webhook payload' });
+      return res.status(400).json({ error: 'order_number / payer_order_id required in webhook payload' });
+    }
+
+    if (failed) {
+      return res.json({ received: true, confirmed: false, reason: 'payment_failed', order_number: orderNumber });
     }
 
     const order = await confirmOrderPayment(String(orderNumber));
@@ -194,6 +274,150 @@ router.post('/webhook', async (req, res) => {
     }
 
     res.json({ received: true, confirmed: true, order_number: order.order_number });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/brightpay-callback', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const orderNumber = String(body.payer_order_id || '');
+    const status = String(body.intent_status || '').toUpperCase();
+    if (!orderNumber) return res.status(400).json({ error: 'payer_order_id required' });
+    if (status !== 'SUCCESS') {
+      return res.json({ received: true, confirmed: false, reason: status || 'UNKNOWN' });
+    }
+    const order = await confirmOrderPayment(orderNumber);
+    return res.json({
+      received: true,
+      confirmed: Boolean(order),
+      order_number: orderNumber,
+      utr: body.utr || '',
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/brightpay-checkout/:orderNumber', async (req, res) => {
+  try {
+    const email = req.query.email?.trim().toLowerCase();
+    if (!email) return res.status(400).json({ error: 'email required' });
+
+    const { rows } = await pool.query('SELECT * FROM orders WHERE order_number = $1', [
+      req.params.orderNumber,
+    ]);
+    if (!rows.length) return res.status(404).json({ error: 'Order not found' });
+    const order = rows[0];
+    if (order.email?.toLowerCase() !== email) {
+      return res.status(403).json({ error: 'Email does not match this order' });
+    }
+    if (order.payment_method !== 'online') {
+      return res.status(400).json({ error: 'Not an online payment order' });
+    }
+    if (order.payment_status === 'paid') {
+      return res.json({
+        order_number: order.order_number,
+        payment_status: 'paid',
+        status: order.status,
+        already_paid: true,
+      });
+    }
+
+    const gateway = await getActiveBrightPayGateway(pool);
+    if (!gateway) {
+      return res.status(400).json({ error: 'BrightPay is not the active payment gateway' });
+    }
+
+    const intent = await createBrightPayIntent({
+      rawToken: gateway.api_key || process.env.BRIGHTPAY_TOKEN,
+      apiUrl: gateway.api_url || process.env.BRIGHTPAY_API_URL,
+      orderNumber: order.order_number,
+      name: order.customer_name,
+      email: order.email,
+      mobile: order.phone,
+      amount: order.total,
+    });
+
+    const intentLink = intent.intent_link;
+    let upiVpa = '';
+    try {
+      const q = intentLink.includes('?') ? intentLink.split('?')[1] : '';
+      upiVpa = new URLSearchParams(q).get('pa') || '';
+    } catch {
+      upiVpa = '';
+    }
+
+    res.json({
+      order_number: order.order_number,
+      total: Number(order.total),
+      customer_name: order.customer_name,
+      email: order.email,
+      phone: order.phone,
+      payment_status: order.payment_status,
+      status: order.status,
+      intent_link: intentLink,
+      gpay_uri: intentLink.replace('upi://pay?', 'tez://upi/pay?'),
+      phonepe_uri: intentLink.replace('upi://pay?', 'phonepe://pay?'),
+      paytm_uri: intentLink.replace('upi://pay?', 'paytmmp://pay?'),
+      upi_vpa: upiVpa,
+      provider: 'brightpay',
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/brightpay-status', async (req, res) => {
+  try {
+    const { order_number, email } = req.body || {};
+    if (!order_number || !email) {
+      return res.status(400).json({ error: 'order_number and email required' });
+    }
+
+    const { rows } = await pool.query('SELECT * FROM orders WHERE order_number = $1', [order_number]);
+    if (!rows.length) return res.status(404).json({ error: 'Order not found' });
+    const order = rows[0];
+    if (order.email?.toLowerCase() !== String(email).trim().toLowerCase()) {
+      return res.status(403).json({ error: 'Email does not match this order' });
+    }
+
+    if (order.payment_status === 'paid') {
+      return res.json({
+        intent_status: 'SUCCESS',
+        payment_status: 'paid',
+        order_number: order.order_number,
+        confirmed: true,
+      });
+    }
+
+    const gateway = await getActiveBrightPayGateway(pool);
+    if (!gateway) {
+      return res.status(400).json({ error: 'BrightPay is not active' });
+    }
+
+    const status = await fetchBrightPayIntentStatus({
+      rawToken: gateway.api_key || process.env.BRIGHTPAY_TOKEN,
+      orderNumber: order.order_number,
+    });
+
+    let confirmed = false;
+    if (status.intent_status === 'SUCCESS') {
+      const paid = await confirmOrderPayment(order.order_number);
+      confirmed = Boolean(paid);
+    }
+
+    res.json({
+      intent_status: status.intent_status,
+      utr: status.utr || '',
+      amount: status.amount,
+      payer_order_id: status.payer_order_id,
+      payment_status:
+        confirmed || status.intent_status === 'SUCCESS' ? 'paid' : order.payment_status,
+      confirmed: confirmed || status.intent_status === 'SUCCESS',
+      order_number: order.order_number,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
