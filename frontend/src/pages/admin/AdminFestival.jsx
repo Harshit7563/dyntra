@@ -3,19 +3,6 @@ import { adminApi } from '../../api';
 import AdminAlert from '../../components/admin/AdminAlert';
 import { useAdminAction } from '../../hooks/useAdminAction';
 
-const FESTIVAL_OPTIONS = [
-  { id: 'none', label: 'None (default Dyntra)' },
-  { id: 'diwali', label: 'Diwali' },
-  { id: 'rakhi', label: 'Raksha Bandhan' },
-  { id: 'holi', label: 'Holi' },
-  { id: 'eid', label: 'Eid' },
-  { id: 'navratri', label: 'Navratri' },
-  { id: 'dussehra', label: 'Dussehra' },
-  { id: 'christmas', label: 'Christmas' },
-  { id: 'new_year', label: 'New Year' },
-  { id: 'custom', label: 'Custom' },
-];
-
 const empty = {
   enabled: false,
   festival_key: 'none',
@@ -41,6 +28,7 @@ function toDateInput(value) {
 export default function AdminFestival() {
   const [form, setForm] = useState(empty);
   const [presets, setPresets] = useState({});
+  const [months, setMonths] = useState([]);
   const [loading, setLoading] = useState(true);
   const { alert, busy, run, clearAlert } = useAdminAction();
 
@@ -50,6 +38,7 @@ export default function AdminFestival() {
       const data = await adminApi.festivalSettings();
       const s = data.settings || {};
       setPresets(data.presets || {});
+      setMonths(data.months || []);
       setForm({
         enabled: Boolean(s.enabled),
         festival_key: s.festival_key || 'none',
@@ -87,7 +76,7 @@ export default function AdminFestival() {
       accent_primary: preset.accent_primary || prev.accent_primary,
       accent_secondary: preset.accent_secondary || prev.accent_secondary,
       accent_bg: preset.accent_bg || prev.accent_bg,
-      enabled: key === 'none' ? false : prev.enabled || true,
+      enabled: key === 'none' ? false : true,
     }));
   };
 
@@ -105,8 +94,10 @@ export default function AdminFestival() {
         starts_at: toDateInput(updated.starts_at),
         ends_at: toDateInput(updated.ends_at),
       }));
-    }, 'Festival theme saved — refresh the store to see it');
+    }, 'Festival theme saved — refresh the store to see colours + animation');
   };
+
+  const animHint = presets[form.festival_key]?.animation || 'shimmer';
 
   if (loading) return <p className="text-gray-500">Loading...</p>;
 
@@ -114,7 +105,7 @@ export default function AdminFestival() {
     <div className="max-w-3xl">
       <h1 className="font-serif text-2xl sm:text-3xl text-maroon mb-2">Festival Theme</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Turn on Diwali, Rakhi, Holi, Eid and more. Changes announcement bar, colours, and a store badge.
+        Enable any Indian festival — store colours, announcement bar, badge, and matching animation turn on together.
       </p>
 
       <AdminAlert message={alert.message} type={alert.type} onClose={clearAlert} />
@@ -131,19 +122,27 @@ export default function AdminFestival() {
         </label>
 
         <div>
-          <label className="block text-xs uppercase text-gray-500 mb-1">Festival</label>
+          <label className="block text-xs uppercase text-gray-500 mb-1">Festival (by month)</label>
           <select
             value={form.festival_key}
             onChange={(e) => applyPreset(e.target.value)}
             className="w-full px-3 py-2 border text-sm"
           >
-            {FESTIVAL_OPTIONS.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
+            <option value="none">None (default Dyntra)</option>
+            <option value="custom">Custom</option>
+            {months.map((m) => (
+              <optgroup key={m.month} label={m.month}>
+                {(m.keys || []).map((key) => (
+                  <option key={`${m.month}-${key}`} value={key}>
+                    {presets[key]?.label || key}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
-          <p className="text-[11px] text-gray-400 mt-1">Selecting a festival fills colours & copy — you can still edit.</p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            Animation: <span className="text-maroon font-medium">{animHint}</span> (auto for this festival)
+          </p>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
@@ -153,7 +152,6 @@ export default function AdminFestival() {
               value={form.label}
               onChange={(e) => setForm({ ...form, label: e.target.value })}
               className="w-full px-3 py-2 border text-sm"
-              placeholder="Diwali"
             />
           </div>
           <div>
@@ -162,7 +160,6 @@ export default function AdminFestival() {
               value={form.badge_text}
               onChange={(e) => setForm({ ...form, badge_text: e.target.value })}
               className="w-full px-3 py-2 border text-sm"
-              placeholder="Diwali Special"
             />
           </div>
         </div>
@@ -173,18 +170,16 @@ export default function AdminFestival() {
             value={form.tagline}
             onChange={(e) => setForm({ ...form, tagline: e.target.value })}
             className="w-full px-3 py-2 border text-sm"
-            placeholder="Light up your festive wardrobe"
           />
         </div>
 
         <div>
-          <label className="block text-xs uppercase text-gray-500 mb-1">Announcement bar (one per line or · separated)</label>
+          <label className="block text-xs uppercase text-gray-500 mb-1">Announcement bar</label>
           <textarea
             value={form.announcements}
             onChange={(e) => setForm({ ...form, announcements: e.target.value })}
             rows={4}
             className="w-full px-3 py-2 border text-sm"
-            placeholder={'Diwali collection is live\nFree shipping above ₹999'}
           />
         </div>
 
@@ -250,11 +245,11 @@ export default function AdminFestival() {
         </label>
 
         <div
-          className="border p-4 text-sm"
+          className="border p-4 text-sm relative overflow-hidden"
           style={{ background: form.accent_bg, borderColor: `${form.accent_secondary}55` }}
         >
           <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: form.accent_secondary }}>
-            Preview
+            Preview · animation: {animHint}
           </p>
           <p className="font-serif text-xl" style={{ color: form.accent_primary }}>
             {form.label || 'Dyntra'} — {form.badge_text || 'Theme'}

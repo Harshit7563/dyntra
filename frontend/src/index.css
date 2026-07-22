@@ -29,3 +29,185 @@ h1, h2, h3, h4 {
 .animate-marquee {
   animation: marquee 25s linear infinite;
 }
+
+/* ——— Festival overlays (admin-enabled) ——— */
+.festival-fx {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  overflow: hidden;
+}
+
+.festival-fx__bit {
+  position: absolute;
+  top: -10%;
+  left: calc(var(--i) * 5.5%);
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  opacity: 0.55;
+  animation: festival-fall 9s linear infinite;
+  animation-delay: calc(var(--i) * -0.45s);
+}
+
+.festival-fx--lights .festival-fx__bit {
+  background: radial-gradient(circle, #FDE68A 0%, #E8B923 50%, transparent 70%);
+  box-shadow: 0 0 8px #FBBF24;
+  animation-name: festival-twinkle-fall;
+}
+
+.festival-fx--sparkle .festival-fx__bit {
+  background: #FBBF24;
+  width: 4px;
+  height: 4px;
+  animation-name: festival-sparkle;
+}
+
+.festival-fx--colors .festival-fx__bit {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  animation-name: festival-color-float;
+}
+.festival-fx--colors .festival-fx__bit:nth-child(3n) { background: #EC4899; }
+.festival-fx--colors .festival-fx__bit:nth-child(3n+1) { background: #8B5CF6; }
+.festival-fx--colors .festival-fx__bit:nth-child(3n+2) { background: #F59E0B; }
+
+.festival-fx--petals .festival-fx__bit {
+  width: 8px;
+  height: 12px;
+  border-radius: 50% 0;
+  background: #F472B6;
+  animation-name: festival-petal;
+}
+.festival-fx--petals .festival-fx__bit:nth-child(even) { background: #FBBF24; }
+
+.festival-fx--ribbon .festival-fx__bit {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #BE185D, #F9A8D4);
+  animation-name: festival-ribbon;
+}
+
+.festival-fx--crescent .festival-fx__bit,
+.festival-fx--moon .festival-fx__bit,
+.festival-fx--glow .festival-fx__bit {
+  background: radial-gradient(circle, #FDE68A, transparent 70%);
+  width: 8px;
+  height: 8px;
+  animation-name: festival-glow-drift;
+}
+
+.festival-fx--snow .festival-fx__bit {
+  background: #fff;
+  width: 5px;
+  height: 5px;
+  opacity: 0.7;
+  animation-name: festival-snow;
+}
+
+.festival-fx--embers .festival-fx__bit {
+  background: radial-gradient(circle, #FB923C, #DC2626);
+  animation-name: festival-ember;
+}
+
+.festival-fx--harvest .festival-fx__bit {
+  background: #FACC15;
+  width: 5px;
+  height: 8px;
+  border-radius: 2px;
+  animation-name: festival-harvest;
+}
+
+.festival-fx--kites .festival-fx__bit {
+  width: 10px;
+  height: 10px;
+  background: #EF4444;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  animation-name: festival-kite;
+}
+.festival-fx--kites .festival-fx__bit:nth-child(even) { background: #3B82F6; }
+
+.festival-fx--tricolor .festival-fx__bit:nth-child(3n) { background: #FF9933; }
+.festival-fx--tricolor .festival-fx__bit:nth-child(3n+1) { background: #fff; box-shadow: 0 0 0 1px #ccc; }
+.festival-fx--tricolor .festival-fx__bit:nth-child(3n+2) { background: #138808; }
+.festival-fx--tricolor .festival-fx__bit { animation-name: festival-fall; }
+
+.festival-fx--shimmer .festival-fx__bit {
+  background: #C9A84C;
+  opacity: 0.35;
+  animation-name: festival-sparkle;
+}
+
+@keyframes festival-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.6; }
+  100% { transform: translateY(110vh) rotate(180deg); opacity: 0; }
+}
+
+@keyframes festival-twinkle-fall {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  15% { opacity: 0.9; }
+  50% { transform: translateY(50vh) scale(1.2); }
+  100% { transform: translateY(110vh) scale(0.4); opacity: 0; }
+}
+
+@keyframes festival-sparkle {
+  0%, 100% { transform: translateY(0) scale(0.4); opacity: 0; }
+  40% { opacity: 0.85; transform: translateY(40vh) scale(1); }
+  100% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+}
+
+@keyframes festival-color-float {
+  0% { transform: translateY(0) rotate(0deg) scale(0.5); opacity: 0; }
+  20% { opacity: 0.75; }
+  100% { transform: translateY(105vh) rotate(240deg) scale(1.1); opacity: 0; }
+}
+
+@keyframes festival-petal {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  15% { opacity: 0.7; }
+  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+
+@keyframes festival-ribbon {
+  0% { transform: translateY(0) translateX(0) rotate(-20deg); opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { transform: translateY(110vh) translateX(40px) rotate(40deg); opacity: 0; }
+}
+
+@keyframes festival-glow-drift {
+  0% { transform: translateY(0); opacity: 0; }
+  30% { opacity: 0.7; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+@keyframes festival-snow {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.8; }
+  100% { transform: translateY(110vh) translateX(30px); opacity: 0; }
+}
+
+@keyframes festival-ember {
+  0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+  20% { opacity: 0.85; }
+  100% { transform: translateY(-10vh) scale(0.2); opacity: 0; }
+}
+
+@keyframes festival-harvest {
+  0% { transform: translateY(0) rotate(0); opacity: 0; }
+  20% { opacity: 0.7; }
+  100% { transform: translateY(110vh) rotate(90deg); opacity: 0; }
+}
+
+@keyframes festival-kite {
+  0% { transform: translateY(80vh) translateX(0) rotate(0); opacity: 0; }
+  20% { opacity: 0.85; }
+  100% { transform: translateY(-10vh) translateX(60px) rotate(25deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .festival-fx { display: none; }
+}

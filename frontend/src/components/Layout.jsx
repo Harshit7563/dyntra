@@ -3,10 +3,12 @@ import AnnouncementBar from './AnnouncementBar';
 import Header from './Header';
 import Footer from './Footer';
 import ShopWithAI from './ShopWithAI';
+import FestivalEffects from './FestivalEffects';
 
 export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col">
+      <FestivalEffects />
       <AnnouncementBar />
       <Header />
       <main className="flex-1">

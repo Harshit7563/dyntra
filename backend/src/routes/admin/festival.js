@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../../db.js';
-import { FESTIVAL_PRESETS } from '../../utils/festival.js';
+import { FESTIVAL_PRESETS, FESTIVAL_MONTHS } from '../../utils/festival.js';
 
 const router = Router();
 
@@ -16,7 +16,7 @@ async function ensureRow() {
 router.get('/', async (_req, res) => {
   try {
     const row = await ensureRow();
-    res.json({ settings: row, presets: FESTIVAL_PRESETS });
+    res.json({ settings: row, presets: FESTIVAL_PRESETS, months: FESTIVAL_MONTHS });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

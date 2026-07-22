@@ -10,6 +10,7 @@ const FestivalContext = createContext({
 const DEFAULTS = {
   active: false,
   festival_key: 'none',
+  animation: 'none',
   announcements: [
     'Free Shipping on Orders Above ₹999',
     '100% Purchase Protection',
@@ -30,7 +31,19 @@ function applyCssVars(theme) {
   root.style.setProperty('--color-maroon-dark', primary);
   root.style.setProperty('--color-gold', secondary);
   root.style.setProperty('--color-cream', bg);
-  root.style.setProperty('--color-gold-light', secondary);
+  root.style.setProperty('--color-gold-light', '#F5E6C8');
+}
+
+function applyBodyClass(theme) {
+  document.body.classList.forEach((c) => {
+    if (c.startsWith('festival-active') || c.startsWith('festival-key-')) {
+      document.body.classList.remove(c);
+    }
+  });
+  if (theme?.active && theme.festival_key && theme.festival_key !== 'none') {
+    document.body.classList.add('festival-active');
+    document.body.classList.add(`festival-key-${theme.festival_key}`);
+  }
 }
 
 export function FestivalProvider({ children }) {
@@ -40,11 +53,14 @@ export function FestivalProvider({ children }) {
   const refresh = async () => {
     try {
       const data = await fetchFestivalTheme();
-      setTheme({ ...DEFAULTS, ...data });
+      const next = { ...DEFAULTS, ...data };
+      setTheme(next);
       applyCssVars(data?.active ? data : DEFAULTS);
+      applyBodyClass(next);
     } catch {
       setTheme(DEFAULTS);
       applyCssVars(DEFAULTS);
+      applyBodyClass(DEFAULTS);
     } finally {
       setLoading(false);
     }
