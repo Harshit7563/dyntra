@@ -35,177 +35,341 @@ h1, h2, h3, h4 {
   pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: 45;
+  z-index: 40;
   overflow: hidden;
+}
+
+.festival-fx__glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  animation: festival-ambient 8s ease-in-out infinite alternate;
 }
 
 .festival-fx__bit {
   position: absolute;
-  top: -10%;
-  left: calc(var(--i) * 5.5%);
-  width: 6px;
-  height: 6px;
+  top: -8%;
   border-radius: 9999px;
-  opacity: 0.55;
+  will-change: transform, opacity;
   animation: festival-fall 9s linear infinite;
-  animation-delay: calc(var(--i) * -0.45s);
 }
 
+/* Diwali / lamps */
+.festival-fx--lights .festival-fx__glow {
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(251, 191, 36, 0.35), transparent 60%),
+    radial-gradient(ellipse 50% 35% at 80% 5%, rgba(234, 179, 8, 0.28), transparent 55%);
+}
 .festival-fx--lights .festival-fx__bit {
-  background: radial-gradient(circle, #FDE68A 0%, #E8B923 50%, transparent 70%);
-  box-shadow: 0 0 8px #FBBF24;
+  background: radial-gradient(circle, #fff7c2 0%, #fbbf24 45%, transparent 72%);
+  box-shadow: 0 0 10px 2px rgba(251, 191, 36, 0.65), 0 0 22px rgba(234, 179, 8, 0.35);
   animation-name: festival-twinkle-fall;
 }
 
+/* Gold sparkles */
+.festival-fx--sparkle .festival-fx__glow {
+  background: radial-gradient(ellipse 70% 30% at 50% 0%, rgba(201, 168, 76, 0.2), transparent 70%);
+}
 .festival-fx--sparkle .festival-fx__bit {
-  background: #FBBF24;
-  width: 4px;
-  height: 4px;
+  background: #f5e6c8;
+  box-shadow: 0 0 6px #c9a84c;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  border-radius: 0;
   animation-name: festival-sparkle;
 }
 
+/* Holi colours */
+.festival-fx--colors .festival-fx__glow {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(236, 72, 153, 0.18), transparent 40%),
+    radial-gradient(circle at 85% 15%, rgba(139, 92, 246, 0.16), transparent 40%),
+    radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.14), transparent 45%);
+}
 .festival-fx--colors .festival-fx__bit {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  filter: blur(0.3px);
   animation-name: festival-color-float;
 }
-.festival-fx--colors .festival-fx__bit:nth-child(3n) { background: #EC4899; }
-.festival-fx--colors .festival-fx__bit:nth-child(3n+1) { background: #8B5CF6; }
-.festival-fx--colors .festival-fx__bit:nth-child(3n+2) { background: #F59E0B; }
+.festival-fx--colors .festival-fx__bit:nth-child(5n) { background: #ec4899; }
+.festival-fx--colors .festival-fx__bit:nth-child(5n+1) { background: #8b5cf6; }
+.festival-fx--colors .festival-fx__bit:nth-child(5n+2) { background: #f59e0b; }
+.festival-fx--colors .festival-fx__bit:nth-child(5n+3) { background: #22c55e; }
+.festival-fx--colors .festival-fx__bit:nth-child(5n+4) { background: #3b82f6; }
 
+/* Petals / flowers */
+.festival-fx--petals .festival-fx__glow {
+  background: radial-gradient(ellipse 50% 25% at 50% 0%, rgba(244, 114, 182, 0.15), transparent 70%);
+}
 .festival-fx--petals .festival-fx__bit {
-  width: 8px;
-  height: 12px;
-  border-radius: 50% 0;
-  background: #F472B6;
+  border-radius: 50% 0 50% 0;
+  background: linear-gradient(135deg, #fda4af, #f472b6);
   animation-name: festival-petal;
 }
-.festival-fx--petals .festival-fx__bit:nth-child(even) { background: #FBBF24; }
+.festival-fx--petals .festival-fx__bit:nth-child(3n) {
+  background: linear-gradient(135deg, #fde68a, #fbbf24);
+}
+.festival-fx--petals .festival-fx__bit:nth-child(3n+1) {
+  background: linear-gradient(135deg, #fecdd3, #fb7185);
+}
 
+/* Rakhi ribbons */
+.festival-fx--ribbon .festival-fx__glow {
+  background: radial-gradient(ellipse 40% 20% at 50% 0%, rgba(190, 24, 93, 0.12), transparent 70%);
+}
 .festival-fx--ribbon .festival-fx__bit {
-  width: 14px;
-  height: 3px;
+  width: 18px !important;
+  height: 4px !important;
   border-radius: 2px;
-  background: linear-gradient(90deg, #BE185D, #F9A8D4);
+  background: linear-gradient(90deg, #be185d, #f9a8d4, #fbbf24);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   animation-name: festival-ribbon;
 }
 
+/* Crescent / moon / soft glow */
+.festival-fx--crescent .festival-fx__glow,
+.festival-fx--moon .festival-fx__glow,
+.festival-fx--glow .festival-fx__glow {
+  background:
+    radial-gradient(ellipse 55% 40% at 70% 10%, rgba(253, 230, 138, 0.22), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 20% 0%, rgba(147, 197, 253, 0.12), transparent 55%);
+}
 .festival-fx--crescent .festival-fx__bit,
 .festival-fx--moon .festival-fx__bit,
 .festival-fx--glow .festival-fx__bit {
-  background: radial-gradient(circle, #FDE68A, transparent 70%);
-  width: 8px;
-  height: 8px;
+  background: radial-gradient(circle, #fef9c3 0%, #fde68a 40%, transparent 70%);
+  box-shadow: 0 0 12px rgba(253, 224, 71, 0.5);
   animation-name: festival-glow-drift;
 }
 
+/* Snow / winter */
+.festival-fx--snow .festival-fx__glow {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 35%);
+}
 .festival-fx--snow .festival-fx__bit {
   background: #fff;
-  width: 5px;
-  height: 5px;
-  opacity: 0.7;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
   animation-name: festival-snow;
 }
 
+/* Lohri / fire embers */
+.festival-fx--embers .festival-fx__glow {
+  background:
+    radial-gradient(ellipse 50% 45% at 50% 100%, rgba(251, 146, 60, 0.28), transparent 55%),
+    radial-gradient(ellipse 30% 25% at 40% 100%, rgba(220, 38, 38, 0.18), transparent 50%);
+}
 .festival-fx--embers .festival-fx__bit {
-  background: radial-gradient(circle, #FB923C, #DC2626);
+  background: radial-gradient(circle, #fed7aa, #f97316 50%, #dc2626);
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.7);
   animation-name: festival-ember;
+  top: auto;
+  bottom: -5%;
 }
 
+/* Harvest grains */
+.festival-fx--harvest .festival-fx__glow {
+  background: radial-gradient(ellipse 60% 25% at 50% 0%, rgba(250, 204, 21, 0.15), transparent 70%);
+}
 .festival-fx--harvest .festival-fx__bit {
-  background: #FACC15;
-  width: 5px;
-  height: 8px;
-  border-radius: 2px;
+  border-radius: 40% 60% 40% 60%;
+  background: linear-gradient(180deg, #fde047, #eab308);
   animation-name: festival-harvest;
 }
 
-.festival-fx--kites .festival-fx__bit {
-  width: 10px;
-  height: 10px;
-  background: #EF4444;
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  animation-name: festival-kite;
+/* Kites */
+.festival-fx--kites .festival-fx__glow {
+  background: radial-gradient(ellipse 70% 30% at 50% 100%, rgba(59, 130, 246, 0.1), transparent 60%);
 }
-.festival-fx--kites .festival-fx__bit:nth-child(even) { background: #3B82F6; }
+.festival-fx--kites .festival-fx__bit {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: #ef4444;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  animation-name: festival-kite;
+  top: auto;
+  bottom: 5%;
+}
+.festival-fx--kites .festival-fx__bit:nth-child(3n) { background: #3b82f6; }
+.festival-fx--kites .festival-fx__bit:nth-child(3n+1) { background: #f59e0b; }
+.festival-fx--kites .festival-fx__bit:nth-child(3n+2) { background: #22c55e; }
 
-.festival-fx--tricolor .festival-fx__bit:nth-child(3n) { background: #FF9933; }
-.festival-fx--tricolor .festival-fx__bit:nth-child(3n+1) { background: #fff; box-shadow: 0 0 0 1px #ccc; }
+/* Independence tricolor */
+.festival-fx--tricolor .festival-fx__glow {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 153, 51, 0.1),
+    transparent 25%,
+    transparent 75%,
+    rgba(19, 136, 8, 0.1)
+  );
+}
+.festival-fx--tricolor .festival-fx__bit {
+  animation-name: festival-fall;
+}
+.festival-fx--tricolor .festival-fx__bit:nth-child(3n) { background: #ff9933; }
+.festival-fx--tricolor .festival-fx__bit:nth-child(3n+1) {
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
 .festival-fx--tricolor .festival-fx__bit:nth-child(3n+2) { background: #138808; }
-.festival-fx--tricolor .festival-fx__bit { animation-name: festival-fall; }
 
+/* Soft gold shimmer */
+.festival-fx--shimmer .festival-fx__glow {
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(201, 168, 76, 0.18), transparent 65%);
+}
 .festival-fx--shimmer .festival-fx__bit {
-  background: #C9A84C;
-  opacity: 0.35;
+  background: radial-gradient(circle, #f5e6c8, #c9a84c);
+  box-shadow: 0 0 8px rgba(201, 168, 76, 0.45);
   animation-name: festival-sparkle;
 }
 
+@keyframes festival-ambient {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.55; }
+}
+
 @keyframes festival-fall {
-  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-  10% { opacity: 0.6; }
-  100% { transform: translateY(110vh) rotate(180deg); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  8% { opacity: 0.75; }
+  100% {
+    transform: translate3d(var(--drift, 20px), 115vh, 0) rotate(var(--spin, 180deg));
+    opacity: 0;
+  }
 }
 
 @keyframes festival-twinkle-fall {
-  0% { transform: translateY(0) scale(0.6); opacity: 0; }
-  15% { opacity: 0.9; }
-  50% { transform: translateY(50vh) scale(1.2); }
-  100% { transform: translateY(110vh) scale(0.4); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.4);
+    opacity: 0;
+  }
+  12% { opacity: 1; }
+  40% {
+    transform: translate3d(calc(var(--drift, 0px) * 0.4), 40vh, 0) scale(1.35);
+  }
+  70% { opacity: 0.85; }
+  100% {
+    transform: translate3d(var(--drift, 20px), 115vh, 0) scale(0.3);
+    opacity: 0;
+  }
 }
 
 @keyframes festival-sparkle {
-  0%, 100% { transform: translateY(0) scale(0.4); opacity: 0; }
-  40% { opacity: 0.85; transform: translateY(40vh) scale(1); }
-  100% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.2) rotate(0deg);
+    opacity: 0;
+  }
+  15% { opacity: 0.95; }
+  50% {
+    transform: translate3d(calc(var(--drift, 0px) * 0.5), 50vh, 0) scale(1.1) rotate(180deg);
+  }
+  100% {
+    transform: translate3d(var(--drift, 15px), 110vh, 0) scale(0.2) rotate(360deg);
+    opacity: 0;
+  }
 }
 
 @keyframes festival-color-float {
-  0% { transform: translateY(0) rotate(0deg) scale(0.5); opacity: 0; }
-  20% { opacity: 0.75; }
-  100% { transform: translateY(105vh) rotate(240deg) scale(1.1); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.4);
+    opacity: 0;
+  }
+  15% { opacity: 0.85; }
+  100% {
+    transform: translate3d(var(--drift, 30px), 110vh, 0) rotate(var(--spin, 280deg)) scale(1.2);
+    opacity: 0;
+  }
 }
 
 @keyframes festival-petal {
-  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-  15% { opacity: 0.7; }
-  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  12% { opacity: 0.8; }
+  100% {
+    transform: translate3d(var(--drift, 40px), 115vh, 0) rotate(var(--spin, 400deg));
+    opacity: 0;
+  }
 }
 
 @keyframes festival-ribbon {
-  0% { transform: translateY(0) translateX(0) rotate(-20deg); opacity: 0; }
-  20% { opacity: 0.8; }
-  100% { transform: translateY(110vh) translateX(40px) rotate(40deg); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-25deg);
+    opacity: 0;
+  }
+  15% { opacity: 0.9; }
+  50% {
+    transform: translate3d(calc(var(--drift, 0px) * 0.6), 50vh, 0) rotate(15deg);
+  }
+  100% {
+    transform: translate3d(var(--drift, 50px), 115vh, 0) rotate(55deg);
+    opacity: 0;
+  }
 }
 
 @keyframes festival-glow-drift {
-  0% { transform: translateY(0); opacity: 0; }
-  30% { opacity: 0.7; }
-  100% { transform: translateY(100vh); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.5);
+    opacity: 0;
+  }
+  25% { opacity: 0.75; }
+  100% {
+    transform: translate3d(var(--drift, 25px), 105vh, 0) scale(1.1);
+    opacity: 0;
+  }
 }
 
 @keyframes festival-snow {
-  0% { transform: translateY(0) translateX(0); opacity: 0; }
-  10% { opacity: 0.8; }
-  100% { transform: translateY(110vh) translateX(30px); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  8% { opacity: 0.85; }
+  100% {
+    transform: translate3d(var(--drift, 35px), 115vh, 0);
+    opacity: 0;
+  }
 }
 
 @keyframes festival-ember {
-  0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
-  20% { opacity: 0.85; }
-  100% { transform: translateY(-10vh) scale(0.2); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.6);
+    opacity: 0;
+  }
+  15% { opacity: 0.95; }
+  100% {
+    transform: translate3d(var(--drift, -20px), -110vh, 0) scale(0.15);
+    opacity: 0;
+  }
 }
 
 @keyframes festival-harvest {
-  0% { transform: translateY(0) rotate(0); opacity: 0; }
-  20% { opacity: 0.7; }
-  100% { transform: translateY(110vh) rotate(90deg); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  15% { opacity: 0.8; }
+  100% {
+    transform: translate3d(var(--drift, 25px), 115vh, 0) rotate(var(--spin, 120deg));
+    opacity: 0;
+  }
 }
 
 @keyframes festival-kite {
-  0% { transform: translateY(80vh) translateX(0) rotate(0); opacity: 0; }
-  20% { opacity: 0.85; }
-  100% { transform: translateY(-10vh) translateX(60px) rotate(25deg); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-10deg);
+    opacity: 0;
+  }
+  12% { opacity: 0.95; }
+  50% {
+    transform: translate3d(calc(var(--drift, 40px) * 0.5), -50vh, 0) rotate(12deg);
+  }
+  100% {
+    transform: translate3d(var(--drift, 70px), -110vh, 0) rotate(28deg);
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

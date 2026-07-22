@@ -11,9 +11,6 @@ const empty = {
   badge_text: '',
   show_badge: true,
   announcements: '',
-  accent_primary: '#7B1E3A',
-  accent_secondary: '#C9A84C',
-  accent_bg: '#FAF7F2',
   starts_at: '',
   ends_at: '',
 };
@@ -47,9 +44,6 @@ export default function AdminFestival() {
         badge_text: s.badge_text || '',
         show_badge: s.show_badge !== false,
         announcements: s.announcements || '',
-        accent_primary: s.accent_primary || '#7B1E3A',
-        accent_secondary: s.accent_secondary || '#C9A84C',
-        accent_bg: s.accent_bg || '#FAF7F2',
         starts_at: toDateInput(s.starts_at),
         ends_at: toDateInput(s.ends_at),
       });
@@ -73,9 +67,6 @@ export default function AdminFestival() {
       tagline: preset.tagline ?? prev.tagline,
       badge_text: preset.badge_text ?? prev.badge_text,
       announcements: preset.announcements ?? prev.announcements,
-      accent_primary: preset.accent_primary || prev.accent_primary,
-      accent_secondary: preset.accent_secondary || prev.accent_secondary,
-      accent_bg: preset.accent_bg || prev.accent_bg,
       enabled: key === 'none' ? false : true,
     }));
   };
@@ -90,14 +81,24 @@ export default function AdminFestival() {
       });
       setForm((prev) => ({
         ...prev,
-        ...updated,
+        festival_key: updated.festival_key || prev.festival_key,
+        label: updated.label ?? prev.label,
+        tagline: updated.tagline ?? prev.tagline,
+        badge_text: updated.badge_text ?? prev.badge_text,
+        announcements: updated.announcements ?? prev.announcements,
+        enabled: Boolean(updated.enabled),
+        show_badge: updated.show_badge !== false,
         starts_at: toDateInput(updated.starts_at),
         ends_at: toDateInput(updated.ends_at),
       }));
-    }, 'Festival theme saved — refresh the store to see colours + animation');
+    }, 'Festival theme saved — store colours + animation update automatically');
   };
 
-  const animHint = presets[form.festival_key]?.animation || 'shimmer';
+  const preset = presets[form.festival_key] || {};
+  const animHint = preset.animation || 'shimmer';
+  const primary = preset.accent_primary || '#7B1E3A';
+  const secondary = preset.accent_secondary || '#C9A84C';
+  const bg = preset.accent_bg || '#FAF7F2';
 
   if (loading) return <p className="text-gray-500">Loading...</p>;
 
@@ -105,7 +106,7 @@ export default function AdminFestival() {
     <div className="max-w-3xl">
       <h1 className="font-serif text-2xl sm:text-3xl text-maroon mb-2">Festival Theme</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Enable any Indian festival — store colours, announcement bar, badge, and matching animation turn on together.
+        Pick a festival — colours and animation apply automatically from its theme.
       </p>
 
       <AdminAlert message={alert.message} type={alert.type} onClose={clearAlert} />
@@ -129,7 +130,6 @@ export default function AdminFestival() {
             className="w-full px-3 py-2 border text-sm"
           >
             <option value="none">None (default Dyntra)</option>
-            <option value="custom">Custom</option>
             {months.map((m) => (
               <optgroup key={m.month} label={m.month}>
                 {(m.keys || []).map((key) => (
@@ -140,10 +140,21 @@ export default function AdminFestival() {
               </optgroup>
             ))}
           </select>
-          <p className="text-[11px] text-gray-400 mt-1">
-            Animation: <span className="text-maroon font-medium">{animHint}</span> (auto for this festival)
-          </p>
         </div>
+
+        {form.festival_key !== 'none' && (
+          <div className="flex flex-wrap items-center gap-3 text-sm border border-gold/20 bg-cream/40 px-3 py-2.5">
+            <span className="text-[10px] uppercase tracking-widest text-gray-500">Theme colours</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-5 h-5 border border-black/10" style={{ background: primary }} title="Primary" />
+              <span className="w-5 h-5 border border-black/10" style={{ background: secondary }} title="Accent" />
+              <span className="w-5 h-5 border border-black/10" style={{ background: bg }} title="Background" />
+            </span>
+            <span className="text-xs text-gray-500">
+              Animation: <span className="text-maroon font-medium">{animHint}</span>
+            </span>
+          </div>
+        )}
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
@@ -183,36 +194,6 @@ export default function AdminFestival() {
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="block text-xs uppercase text-gray-500 mb-1">Primary</label>
-            <input
-              type="color"
-              value={form.accent_primary}
-              onChange={(e) => setForm({ ...form, accent_primary: e.target.value })}
-              className="w-full h-10 border cursor-pointer"
-            />
-          </div>
-          <div>
-            <label className="block text-xs uppercase text-gray-500 mb-1">Gold / accent</label>
-            <input
-              type="color"
-              value={form.accent_secondary}
-              onChange={(e) => setForm({ ...form, accent_secondary: e.target.value })}
-              className="w-full h-10 border cursor-pointer"
-            />
-          </div>
-          <div>
-            <label className="block text-xs uppercase text-gray-500 mb-1">Background</label>
-            <input
-              type="color"
-              value={form.accent_bg}
-              onChange={(e) => setForm({ ...form, accent_bg: e.target.value })}
-              className="w-full h-10 border cursor-pointer"
-            />
-          </div>
-        </div>
-
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs uppercase text-gray-500 mb-1">Starts (optional)</label>
@@ -246,12 +227,12 @@ export default function AdminFestival() {
 
         <div
           className="border p-4 text-sm relative overflow-hidden"
-          style={{ background: form.accent_bg, borderColor: `${form.accent_secondary}55` }}
+          style={{ background: bg, borderColor: `${secondary}55` }}
         >
-          <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: form.accent_secondary }}>
-            Preview · animation: {animHint}
+          <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: secondary }}>
+            Preview · {animHint}
           </p>
-          <p className="font-serif text-xl" style={{ color: form.accent_primary }}>
+          <p className="font-serif text-xl" style={{ color: primary }}>
             {form.label || 'Dyntra'} — {form.badge_text || 'Theme'}
           </p>
           <p className="text-xs mt-1 opacity-70">{form.tagline || 'Tagline appears here'}</p>
