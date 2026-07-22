@@ -15,7 +15,10 @@ cp -r frontend/dist/hero/* /home/dyntra/public_html/hero/ 2>/dev/null || true
 
 echo "=== 3) Pull backend app ==="
 cd /home/dyntra/apps/dyntra-app
+git stash push -u -m "cpanel-pre-pull-$(date +%s)" || true
 git pull origin main
+# ensure AI route file exists
+test -f backend/src/routes/ai.js && echo "AI route OK" || echo "WARNING: ai.js missing"
 
 echo "=== 4) Update category + hero image URLs in DB ==="
 cd /home/dyntra/apps/dyntra-app/backend

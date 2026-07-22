@@ -112,6 +112,12 @@ export async function confirmPayment(orderNumber, paymentReference) {
   return parseJson(res);
 }
 
+export async function fetchUpiCheckout(orderNumber, email) {
+  const qs = new URLSearchParams({ email });
+  const res = await fetch(`${API_BASE}/payment/upi-checkout/${encodeURIComponent(orderNumber)}?${qs}`);
+  return parseJson(res);
+}
+
 export async function submitContactForm(data) {
   const res = await fetch(`${API_BASE}/contact`, {
     method: 'POST',

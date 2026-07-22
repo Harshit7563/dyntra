@@ -141,9 +141,10 @@ async function loadCatalog() {
     return catalogCache.rows;
   }
 
-  // Prefer live dyntra.in catalog so local Shop with AI matches the store
-  const useLive = process.env.USE_LIVE_CATALOG !== 'false';
-  if (useLive) {
+  // Production / cPanel: always use local DB (same products as the live store).
+  // Local Mac only: set USE_LIVE_CATALOG=true to pull from https://dyntra.in
+  const useRemoteCatalog = process.env.USE_LIVE_CATALOG === 'true';
+  if (useRemoteCatalog) {
     try {
       const live = await loadCatalogFromLive();
       if (live.length) {
@@ -151,7 +152,7 @@ async function loadCatalog() {
         return live;
       }
     } catch (err) {
-      console.warn('Live catalog fetch failed, using local DB:', err.message);
+      console.warn('Remote catalog fetch failed, using local DB:', err.message);
     }
   }
 

@@ -30,11 +30,14 @@ import AdminCategories from './pages/admin/AdminCategories';
 import AdminHero from './pages/admin/AdminHero';
 import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminPayment from './pages/admin/AdminPayment';
+import UpiPay from './pages/UpiPay';
 import NotFound from './pages/NotFound';
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/pay/:orderNumber" element={<UpiPay />} />
+
       <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="products" element={<Products />} />

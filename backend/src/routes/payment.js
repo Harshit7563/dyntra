@@ -108,7 +108,9 @@ router.get('/config', async (_req, res) => {
       methods.push({
         id: 'upi',
         label: 'UPI / PhonePe / GPay',
-        desc: settings.upi_vpa ? `Pay to ${settings.upi_vpa} on delivery` : 'Pay via UPI at delivery confirmation',
+        desc: settings.upi_vpa
+          ? `Pay securely to ${settings.upi_vpa} — Dyntra UPI checkout`
+          : 'Pay instantly via UPI, PhonePe or GPay',
       });
     }
     if (activeGateway?.payment_url) {
@@ -205,11 +207,66 @@ router.post('/confirm', async (req, res) => {
     const webhookSecret = process.env.PAYMENT_WEBHOOK_SECRET;
     const headerSecret = req.headers['x-payment-secret'];
     const hasValidSecret = webhookSecret && headerSecret === webhookSecret;
+    const allowedManualRefs = ['upi_manual', 'upi_paid', 'gateway_return', 'pay_on_delivery'];
+    const hasManualRef = payment_reference && allowedManualRefs.includes(String(payment_reference));
 
-    if (!hasValidSecret && !payment_reference) {
+    if (!hasValidSecret && !hasManualRef) {
       return res.status(400).json({
         error: 'Payment confirmation requires gateway callback (?payment=success) or payment_reference',
       });
+    }
+
+    // Pay on delivery: confirm order, keep payment pending for COD-style collection
+    if (payment_reference === 'pay_on_delivery') {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const { rows } = await client.query(
+          "SELECT * FROM orders WHERE order_number = $1 AND payment_status = 'pending' AND payment_method = 'upi' FOR UPDATE",
+          [order_number]
+        );
+        if (!rows.length) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({ error: 'Order not found or already processed' });
+        }
+        const order = rows[0];
+        const { rows: items } = await client.query(
+          'SELECT * FROM order_items WHERE order_id = $1',
+          [order.id]
+        );
+        for (const item of items) {
+          const { rows: products } = await client.query(
+            'SELECT stock, name FROM products WHERE id = $1 FOR UPDATE',
+            [item.product_id]
+          );
+          if (!products.length || products[0].stock < item.quantity) {
+            await client.query('ROLLBACK');
+            throw new Error(`Insufficient stock for ${item.product_name}`);
+          }
+          await client.query(
+            'UPDATE products SET stock = stock - $1 WHERE id = $2',
+            [item.quantity, item.product_id]
+          );
+        }
+        await client.query(
+          "UPDATE orders SET payment_status = 'pending', status = 'confirmed' WHERE id = $1",
+          [order.id]
+        );
+        await client.query('COMMIT');
+        const confirmed = { ...order, payment_status: 'pending', status: 'confirmed' };
+        sendOrderNotifications(confirmed, items).catch((err) => console.error('[order:notify]', err.message));
+        return res.json({
+          success: true,
+          order_number: order.order_number,
+          pay_on_delivery: true,
+          order: { ...confirmed, items },
+        });
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
     }
 
     const order = await confirmOrderPayment(order_number);
@@ -217,6 +274,64 @@ router.post('/confirm', async (req, res) => {
 
     const items = await loadOrderItems(order.id);
     res.json({ success: true, order_number: order.order_number, order: { ...order, items } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/upi-checkout/:orderNumber', async (req, res) => {
+  try {
+    const email = req.query.email?.trim().toLowerCase();
+    if (!email) return res.status(400).json({ error: 'email required' });
+
+    const { rows } = await pool.query(
+      'SELECT * FROM orders WHERE order_number = $1',
+      [req.params.orderNumber]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Order not found' });
+    const order = rows[0];
+    if (order.email?.toLowerCase() !== email) {
+      return res.status(403).json({ error: 'Email does not match this order' });
+    }
+    if (order.payment_method !== 'upi') {
+      return res.status(400).json({ error: 'Not a UPI order' });
+    }
+
+    const settings = await getSettings();
+    const { rows: items } = await pool.query(
+      'SELECT product_name, quantity, price, image_url FROM order_items WHERE order_id = $1',
+      [order.id]
+    );
+
+    const amount = Number(order.total);
+    const vpa = (settings.upi_vpa || '').trim();
+    const payeeName = 'Dyntra';
+    const note = `Dyntra ${order.order_number}`;
+    const upiParams = new URLSearchParams({
+      pa: vpa || 'dyntra@upi',
+      pn: payeeName,
+      am: amount.toFixed(2),
+      cu: 'INR',
+      tn: note,
+    });
+    const upiUri = `upi://pay?${upiParams.toString()}`;
+
+    res.json({
+      order_number: order.order_number,
+      total: amount,
+      customer_name: order.customer_name,
+      email: order.email,
+      phone: order.phone,
+      payment_status: order.payment_status,
+      status: order.status,
+      upi_vpa: vpa,
+      upi_uri: upiUri,
+      gpay_uri: `tez://upi/pay?${upiParams.toString()}`,
+      phonepe_uri: `phonepe://pay?${upiParams.toString()}`,
+      paytm_uri: `paytmmp://pay?${upiParams.toString()}`,
+      items,
+      configured: Boolean(vpa),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

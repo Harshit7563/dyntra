@@ -123,6 +123,16 @@ export default function Checkout() {
         return;
       }
 
+      if (form.payment_method === 'upi') {
+        clearCart();
+        sessionStorage.setItem(`order-email-${order.order_number}`, form.email.trim().toLowerCase());
+        navigate(
+          `/pay/${order.order_number}?email=${encodeURIComponent(form.email.trim().toLowerCase())}`,
+          { state: { order } }
+        );
+        return;
+      }
+
       clearCart();
       sessionStorage.setItem(`order-email-${order.order_number}`, form.email.trim().toLowerCase());
       navigate(`/order-success/${order.order_number}`, { state: { order } });
@@ -301,7 +311,11 @@ export default function Checkout() {
 
             <button type="submit" disabled={loading}
               className="w-full mt-6 py-3.5 bg-maroon text-white text-sm uppercase tracking-widest hover:bg-maroon-dark transition-colors disabled:opacity-60">
-              {loading ? 'Placing Order...' : form.payment_method === 'online' ? 'Pay Now' : 'Place Order'}
+              {loading
+                ? 'Placing Order...'
+                : form.payment_method === 'online' || form.payment_method === 'upi'
+                  ? 'Continue to Pay'
+                  : 'Place Order'}
             </button>
 
             {total < FREE_SHIPPING_MIN && (
@@ -325,7 +339,11 @@ export default function Checkout() {
             disabled={loading}
             className="flex-1 max-w-xs py-3 bg-maroon text-white text-sm uppercase tracking-widest disabled:opacity-60"
           >
-            {loading ? 'Placing...' : form.payment_method === 'online' ? 'Pay Now' : 'Place Order'}
+            {loading
+              ? 'Placing...'
+              : form.payment_method === 'online' || form.payment_method === 'upi'
+                ? 'Continue to Pay'
+                : 'Place Order'}
           </button>
         </div>
       </div>

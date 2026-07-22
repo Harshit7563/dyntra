@@ -71,8 +71,10 @@ router.post('/', authRequired, async (req, res) => {
     const orderItems = [];
 
     const isOnline = payment_method === 'online';
-    const orderStatus = isOnline ? 'pending_payment' : 'confirmed';
-    const paymentStatus = isOnline ? 'pending' : 'paid';
+    const isUpi = payment_method === 'upi';
+    const awaitsPayment = isOnline || isUpi;
+    const orderStatus = awaitsPayment ? 'pending_payment' : 'confirmed';
+    const paymentStatus = awaitsPayment ? 'pending' : 'paid';
 
     for (const item of items) {
       const { rows } = await client.query(
@@ -106,7 +108,7 @@ router.post('/', authRequired, async (req, res) => {
         image_url: product.image_url,
       });
 
-      if (!isOnline) {
+      if (!awaitsPayment) {
         await client.query(
           'UPDATE products SET stock = stock - $1 WHERE id = $2',
           [item.quantity, product.id]
@@ -184,7 +186,7 @@ router.post('/', authRequired, async (req, res) => {
       items: orderItems,
     };
 
-    if (!isOnline) {
+    if (!awaitsPayment) {
       sendOrderNotifications(order, orderItems).catch((err) => console.error('[order:notify]', err.message));
     }
 
