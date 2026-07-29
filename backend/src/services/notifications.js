@@ -89,9 +89,15 @@ export async function sendOrderNotifications(order, items = []) {
   `;
 
   const address = `${order.address_line1}, ${order.city}, ${order.state} – ${order.pincode}`;
+  const totalPlain = Number(order.total).toLocaleString('en-IN');
   const orderParams = {
     to_name: order.customer_name,
     customer_name: order.customer_name,
+    // EmailJS template vars (user template)
+    order_id: order.order_number,
+    cost: { total: totalPlain },
+    'cost.total': totalPlain,
+    // Common aliases
     order_number: order.order_number,
     order_total: formatInr(order.total),
     payment_method: paymentLabel,
