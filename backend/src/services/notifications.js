@@ -89,29 +89,34 @@ export async function sendOrderNotifications(order, items = []) {
   `;
 
   const address = `${order.address_line1}, ${order.city}, ${order.state} – ${order.pincode}`;
-  const totalPlain = Number(order.total).toLocaleString('en-IN');
+  // Flat strings only — EmailJS nested {{cost.total}} is unreliable on REST API
+  const totalPlain = String(Math.round(Number(order.total)));
   const orderParams = {
-    to_name: order.customer_name,
-    customer_name: order.customer_name,
-    // EmailJS template vars (user template)
-    order_id: order.order_number,
-    cost: { total: totalPlain },
-    'cost.total': totalPlain,
-    // Common aliases
-    order_number: order.order_number,
-    order_total: formatInr(order.total),
-    payment_method: paymentLabel,
-    phone: order.phone,
-    email: order.email,
+    to_name: String(order.customer_name || ''),
+    customer_name: String(order.customer_name || ''),
+    order_id: String(order.order_number || ''),
+    order_number: String(order.order_number || ''),
+    total: totalPlain,
+    amount: totalPlain,
+    cost_total: totalPlain,
+    order_total: totalPlain,
+    payment_method: String(paymentLabel || ''),
+    phone: String(order.phone || ''),
+    email: String(order.email || ''),
     order_items: orderItemsText(items),
     order_items_html: orderItemsHtml(items),
-    address,
-    order_url: orderUrl,
+    address: String(address || ''),
+    order_url: String(orderUrl || ''),
     brand: COMPANY.brand,
     company_email: COMPANY.email,
     company_phone: COMPANY.phone,
     subject: `${COMPANY.brand} order confirmed — ${order.order_number}`,
   };
+  console.log('[order:emailjs:params]', {
+    order_id: orderParams.order_id,
+    total: orderParams.total,
+    email: orderParams.email,
+  });
 
   const customerTemplate = process.env.EMAILJS_ORDER_TEMPLATE_ID || process.env.EMAILJS_TEMPLATE_ID;
   const adminTemplate = process.env.EMAILJS_ADMIN_ORDER_TEMPLATE_ID || customerTemplate;
