@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { pool } from '../db.js';
 import { authOptional, authRequired } from '../middleware/auth.js';
 import { sendOrderNotifications } from '../services/notifications.js';
-import { COD_MAX_PRODUCT_PRICE } from '../config/payment.js';
 
 const router = Router();
 const FREE_SHIPPING_MIN = 0;
@@ -89,12 +88,6 @@ router.post('/', authRequired, async (req, res) => {
         return res.status(400).json({ error: `Product not found: ${item.name || item.id}` });
       }
       const product = rows[0];
-      if (payment_method === 'cod' && Number(product.price) > COD_MAX_PRODUCT_PRICE) {
-        await client.query('ROLLBACK');
-        return res.status(400).json({
-          error: `Cash on Delivery is only available for products up to ₹${COD_MAX_PRODUCT_PRICE}. "${product.name}" exceeds this limit.`,
-        });
-      }
       if (product.stock < item.quantity) {
         await client.query('ROLLBACK');
         return res.status(400).json({ error: `Insufficient stock for ${product.name}` });

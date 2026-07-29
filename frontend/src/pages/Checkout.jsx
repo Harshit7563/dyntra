@@ -3,7 +3,7 @@ import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice, placeOrder, fetchPaymentConfig, buildPaymentRedirect } from '../api';
-import { calcOrderTotals, COD_MAX_PRODUCT_PRICE } from '../utils/order';
+import { calcOrderTotals } from '../utils/order';
 
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -41,17 +41,10 @@ export default function Checkout() {
     payment_method: 'cod',
   });
 
-  const [paymentConfig, setPaymentConfig] = useState(null);
-
   useEffect(() => {
     fetchPaymentConfig()
       .then((config) => {
-        setPaymentConfig(config);
-        const codMax = config.cod_max_product_price ?? COD_MAX_PRODUCT_PRICE;
-        const codEligible = items.every((item) => Number(item.price) <= codMax);
-        const available = (config.methods || []).filter(
-          (m) => m.id !== 'cod' || codEligible
-        );
+        const available = config.methods || DEFAULT_METHODS;
         if (available.length) {
           setPaymentMethods(available);
           setForm((prev) => ({
@@ -63,7 +56,7 @@ export default function Checkout() {
         }
       })
       .catch(console.error);
-  }, [items]);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -75,10 +68,6 @@ export default function Checkout() {
       }));
     }
   }, [user]);
-
-  const codMax = paymentConfig?.cod_max_product_price ?? COD_MAX_PRODUCT_PRICE;
-  const codEligible = items.every((item) => Number(item.price) <= codMax);
-  const codBlockedItems = items.filter((item) => Number(item.price) > codMax);
 
   const { shipping, discount, total: grandTotal } = calcOrderTotals(total, appliedCoupon);
 
@@ -251,14 +240,6 @@ export default function Checkout() {
           {/* Payment */}
           <section className="bg-white border border-gold/20 p-6">
             <h2 className="font-serif text-xl text-maroon mb-5">Payment Method</h2>
-            {!codEligible && (
-              <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 p-3 mb-4">
-                Cash on Delivery is available only for products up to {formatPrice(codMax)}.
-                {codBlockedItems.length > 0 && (
-                  <> Remove {codBlockedItems.map((i) => `"${i.name}"`).join(', ')} or choose online payment.</>
-                )}
-              </p>
-            )}
             <div className="space-y-3">
               {paymentMethods.map((pm) => (
                 <label key={pm.id} className={`flex items-start gap-3 p-4 border cursor-pointer transition-colors ${form.payment_method === pm.id ? 'border-maroon bg-maroon/5' : 'border-gold/20 hover:border-gold'}`}>

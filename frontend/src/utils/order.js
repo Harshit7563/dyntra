@@ -1,6 +1,5 @@
 export const FREE_SHIPPING_MIN = 0;
 export const SHIPPING_FEE = 0;
-export const COD_MAX_PRODUCT_PRICE = 100000;
 
 export function calcOrderTotals(subtotal, couponCode = '') {
   const shipping = 0;

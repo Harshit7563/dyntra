@@ -3,7 +3,6 @@ import { pool } from '../db.js';
 import { buildPaymentUrl, sanitizeGateway } from '../utils/paymentUrl.js';
 import { sendOrderNotifications } from '../services/notifications.js';
 import { FRONTEND_URL } from '../config/company.js';
-import { COD_MAX_PRODUCT_PRICE } from '../config/payment.js';
 import { createBrightPayIntent, fetchBrightPayIntentStatus, isBrightPayGateway, getActiveBrightPayGateway } from '../services/brightpay.js';
 
 const router = Router();
@@ -86,7 +85,6 @@ router.get('/config', async (_req, res) => {
   try {
     res.json({
       cod_enabled: true,
-      cod_max_product_price: COD_MAX_PRODUCT_PRICE,
       upi_enabled: false,
       upi_vpa: '',
       active_gateway: null,
