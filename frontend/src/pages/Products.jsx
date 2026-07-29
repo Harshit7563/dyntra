@@ -6,7 +6,6 @@ import { fetchProducts, fetchCategoriesGrouped } from '../api';
 
 const PRICE_FILTERS = [
   { label: 'All Prices', value: '' },
-  { label: 'Under ₹500', value: 'under-500' },
   { label: '₹500 – ₹1,500', value: '500-1500' },
   { label: '₹1,500 – ₹3,000', value: '1500-3000' },
   { label: '₹3,000 – ₹6,000', value: '3000-6000' },
