@@ -84,61 +84,19 @@ function buildCallbackUrl(gateway, orderNumber, email) {
 
 router.get('/config', async (_req, res) => {
   try {
-    const settings = await getSettings();
-    let activeGateway = null;
-
-    if (settings.active_gateway_id) {
-      const { rows } = await pool.query(
-        'SELECT * FROM payment_gateways WHERE id = $1 AND is_enabled = true',
-        [settings.active_gateway_id]
-      );
-      if (rows.length) {
-        activeGateway = sanitizeGateway(rows[0]);
-        activeGateway._is_brightpay = isBrightPayGateway(rows[0]);
-      }
-    }
-
-    const methods = [];
-    if (settings.cod_enabled) {
-      methods.push({
-        id: 'cod',
-        label: 'Cash on Delivery',
-        desc: `Available for products up to ₹${COD_MAX_PRODUCT_PRICE}`,
-      });
-    }
-    if (settings.upi_enabled) {
-      methods.push({
-        id: 'upi',
-        label: 'UPI / PhonePe / GPay',
-        desc: settings.upi_vpa
-          ? `Pay securely to ${settings.upi_vpa} — Dyntra UPI checkout`
-          : 'Pay instantly via UPI, PhonePe or GPay',
-      });
-    }
-    // BrightPay has no payment_url (uses generate_intent) — still show Pay Online
-    if (activeGateway && (activeGateway.payment_url || activeGateway._is_brightpay || activeGateway.provider === 'brightpay')) {
-      methods.push({
-        id: 'online',
-        label: `Pay Online (${activeGateway.name})`,
-        desc: activeGateway._is_brightpay || activeGateway.provider === 'brightpay'
-          ? 'Pay via UPI (BrightPay)'
-          : activeGateway.test_mode
-            ? 'Test mode — redirect to payment gateway'
-            : 'Secure online payment',
-      });
-    }
-
-    if (activeGateway) {
-      delete activeGateway._is_brightpay;
-    }
-
     res.json({
-      cod_enabled: settings.cod_enabled,
+      cod_enabled: true,
       cod_max_product_price: COD_MAX_PRODUCT_PRICE,
-      upi_enabled: settings.upi_enabled,
-      upi_vpa: settings.upi_vpa || '',
-      active_gateway: activeGateway,
-      methods,
+      upi_enabled: false,
+      upi_vpa: '',
+      active_gateway: null,
+      methods: [
+        {
+          id: 'cod',
+          label: 'Cash on Delivery',
+          desc: 'Pay when your order arrives',
+        },
+      ],
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

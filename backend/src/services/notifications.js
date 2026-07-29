@@ -104,6 +104,13 @@ export async function sendOrderNotifications(order, items = []) {
     sendAdminWhatsApp(`🛍️ New ${COMPANY.brand} order\n${summaryText}`),
   ]);
 
+  const customerMail = results[0];
+  if (customerMail.status === 'fulfilled') {
+    console.log('[order:email:customer]', order.email, customerMail.value);
+  } else {
+    console.error('[order:email:customer:fail]', order.email, customerMail.reason?.message || customerMail.reason);
+  }
+
   return results;
 }
 

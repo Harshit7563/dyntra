@@ -61,6 +61,9 @@ router.post('/', authRequired, async (req, res) => {
     if (!payment_method) {
       return res.status(400).json({ error: 'Payment method is required' });
     }
+    if (payment_method !== 'cod') {
+      return res.status(400).json({ error: 'Only Cash on Delivery is available right now' });
+    }
     if (!items?.length) {
       return res.status(400).json({ error: 'Cart is empty' });
     }
