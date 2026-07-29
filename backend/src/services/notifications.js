@@ -1,4 +1,4 @@
-import { sendEmail } from './email.js';
+import { sendEmail, sendEmailJs } from './email.js';
 import { COMPANY, FRONTEND_URL } from '../config/company.js';
 
 const PAYMENT_LABELS = {
@@ -88,19 +88,65 @@ export async function sendOrderNotifications(order, items = []) {
     <p>${order.address_line1}, ${order.city}, ${order.state} – ${order.pincode}</p>
   `;
 
+  const address = `${order.address_line1}, ${order.city}, ${order.state} – ${order.pincode}`;
+  const orderParams = {
+    to_name: order.customer_name,
+    customer_name: order.customer_name,
+    order_number: order.order_number,
+    order_total: formatInr(order.total),
+    payment_method: paymentLabel,
+    phone: order.phone,
+    email: order.email,
+    order_items: orderItemsText(items),
+    order_items_html: orderItemsHtml(items),
+    address,
+    order_url: orderUrl,
+    brand: COMPANY.brand,
+    company_email: COMPANY.email,
+    company_phone: COMPANY.phone,
+    subject: `${COMPANY.brand} order confirmed — ${order.order_number}`,
+  };
+
+  const customerTemplate = process.env.EMAILJS_ORDER_TEMPLATE_ID || process.env.EMAILJS_TEMPLATE_ID;
+  const adminTemplate = process.env.EMAILJS_ADMIN_ORDER_TEMPLATE_ID || customerTemplate;
+
+  const sendCustomerMail = customerTemplate
+    ? () =>
+        sendEmailJs({
+          templateId: customerTemplate,
+          to: order.email,
+          params: orderParams,
+        })
+    : () =>
+        sendEmail({
+          to: order.email,
+          subject: orderParams.subject,
+          html: customerHtml,
+          text: summaryText,
+        });
+
+  const sendAdminMail = adminTemplate
+    ? () =>
+        sendEmailJs({
+          templateId: adminTemplate,
+          to: COMPANY.email,
+          params: {
+            ...orderParams,
+            subject: `New ${COMPANY.brand} order — ${order.order_number}`,
+            to_name: 'Admin',
+          },
+        })
+    : () =>
+        sendEmail({
+          to: COMPANY.email,
+          subject: `New ${COMPANY.brand} order — ${order.order_number}`,
+          html: adminHtml,
+          text: summaryText,
+        });
+
   const results = await Promise.allSettled([
-    sendEmail({
-      to: order.email,
-      subject: `${COMPANY.brand} order confirmed — ${order.order_number}`,
-      html: customerHtml,
-      text: summaryText,
-    }),
-    sendEmail({
-      to: COMPANY.email,
-      subject: `New ${COMPANY.brand} order — ${order.order_number}`,
-      html: adminHtml,
-      text: summaryText,
-    }),
+    sendCustomerMail(),
+    sendAdminMail(),
     sendAdminWhatsApp(`🛍️ New ${COMPANY.brand} order\n${summaryText}`),
   ]);
 
