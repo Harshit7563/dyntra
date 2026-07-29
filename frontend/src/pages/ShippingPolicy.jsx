@@ -38,7 +38,7 @@ export default function ShippingPolicy() {
         <h2 className="font-serif text-xl text-maroon mb-3">4. Shipping Charges</h2>
         <ul className="list-disc pl-5 space-y-2">
           <li>Free shipping on all orders across India.</li>
-          <li>Shipping charges are displayed at checkout before you confirm your order.</li>
+          <li>No shipping charges are added at checkout.</li>
         </ul>
       </section>
 
