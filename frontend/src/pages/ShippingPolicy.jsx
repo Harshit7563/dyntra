@@ -37,8 +37,7 @@ export default function ShippingPolicy() {
       <section>
         <h2 className="font-serif text-xl text-maroon mb-3">4. Shipping Charges</h2>
         <ul className="list-disc pl-5 space-y-2">
-          <li>Free shipping on orders above ₹999.</li>
-          <li>A flat shipping fee of ₹49 applies to orders below ₹999.</li>
+          <li>Free shipping on all orders across India.</li>
           <li>Shipping charges are displayed at checkout before you confirm your order.</li>
         </ul>
       </section>

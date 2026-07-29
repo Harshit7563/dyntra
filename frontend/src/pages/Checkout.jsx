@@ -3,7 +3,7 @@ import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice, placeOrder, fetchPaymentConfig, buildPaymentRedirect } from '../api';
-import { calcOrderTotals, FREE_SHIPPING_MIN, COD_MAX_PRODUCT_PRICE } from '../utils/order';
+import { calcOrderTotals, COD_MAX_PRODUCT_PRICE } from '../utils/order';
 
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -328,12 +328,6 @@ export default function Checkout() {
                   ? 'Continue to Pay'
                   : 'Place Order'}
             </button>
-
-            {total < FREE_SHIPPING_MIN && (
-              <p className="text-xs text-gray-500 mt-3 text-center">
-                Add {formatPrice(FREE_SHIPPING_MIN - total)} more for free shipping
-              </p>
-            )}
           </div>
         </div>
       </form>

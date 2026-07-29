@@ -82,7 +82,7 @@ export function CustomersIcon({ inline = false }) {
 
 const FEATURES = [
   { Icon: SilkCertifiedIcon, title: 'Pure Silk Certified', desc: 'Authentic handloom silk' },
-  { Icon: FreeShippingIcon, title: 'Free Shipping', desc: 'On orders above ₹999' },
+  { Icon: FreeShippingIcon, title: 'Free Shipping', desc: 'On all orders' },
   { Icon: ReturnsIcon, title: '7-Day Returns', desc: 'Easy exchange & returns' },
   { Icon: WhatsAppIcon, title: 'WhatsApp Support', desc: 'Chat with our silk stylists' },
   { Icon: CustomersIcon, title: '1000+ Customers', desc: 'Trusted by saree lovers' },

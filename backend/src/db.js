@@ -131,6 +131,7 @@ export async function initDb() {
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;
     ALTER TABLE products ADD COLUMN IF NOT EXISTS compare_price DECIMAL(10, 2);
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'paid';
 
     CREATE TABLE IF NOT EXISTS payment_settings (

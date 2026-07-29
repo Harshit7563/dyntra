@@ -1,7 +1,7 @@
 import { useFestival } from '../context/FestivalContext';
 
 const DEFAULT_MESSAGES = [
-  'Free Shipping on Orders Above ₹999',
+  'Free Shipping on All Orders',
   '100% Purchase Protection',
   'WhatsApp for Quick Orders',
   'Use code FIRST10 for 10% off!',

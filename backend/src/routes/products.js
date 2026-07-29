@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
       SELECT p.*, c.name as category_name, c.slug as category_slug
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
-      WHERE 1=1
+      WHERE COALESCE(p.is_active, true) = true
     `;
     const params = [];
     let paramIndex = 1;
@@ -101,7 +101,7 @@ router.get('/:slug', async (req, res) => {
         ) AS image_urls
        FROM products p
        LEFT JOIN categories c ON p.category_id = c.id
-       WHERE p.slug = $1`,
+       WHERE p.slug = $1 AND COALESCE(p.is_active, true) = true`,
       [req.params.slug]
     );
     if (!rows.length) return res.status(404).json({ error: 'Product not found' });

@@ -124,7 +124,7 @@ async function loadCatalogFromDb() {
             p.image_url, p.stock, p.is_featured, p.is_new, c.name AS category_name
      FROM products p
      LEFT JOIN categories c ON c.id = p.category_id
-     WHERE COALESCE(p.stock, 0) > 0
+     WHERE COALESCE(p.stock, 0) > 0 AND COALESCE(p.is_active, true) = true
      ORDER BY p.is_featured DESC, p.is_new DESC, p.id DESC
      LIMIT $1`,
     [CATALOG_LIMIT]

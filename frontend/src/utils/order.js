@@ -1,9 +1,9 @@
-export const FREE_SHIPPING_MIN = 999;
-export const SHIPPING_FEE = 49;
+export const FREE_SHIPPING_MIN = 0;
+export const SHIPPING_FEE = 0;
 export const COD_MAX_PRODUCT_PRICE = 1000;
 
 export function calcOrderTotals(subtotal, couponCode = '') {
-  const shipping = subtotal >= FREE_SHIPPING_MIN ? 0 : SHIPPING_FEE;
+  const shipping = 0;
   const coupon = couponCode.trim().toUpperCase();
   const discountRate = coupon === 'FIRST10' ? 0.1 : 0;
   const discount = Math.round(subtotal * discountRate);

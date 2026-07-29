@@ -12,7 +12,7 @@ const DEFAULTS = {
   festival_key: 'none',
   animation: 'none',
   announcements: [
-    'Free Shipping on Orders Above ₹999',
+    'Free Shipping on All Orders',
     '100% Purchase Protection',
     'WhatsApp for Quick Orders',
     'Use code FIRST10 for 10% off!',

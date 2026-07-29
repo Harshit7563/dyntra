@@ -5,7 +5,7 @@ export { FESTIVAL_PRESETS, FESTIVAL_MONTHS, getFestivalLabel } from './festivalP
 export function parseAnnouncements(text) {
   if (!text || !String(text).trim()) {
     return [
-      'Free Shipping on Orders Above ₹999',
+      'Free Shipping on All Orders',
       '100% Purchase Protection',
       'WhatsApp for Quick Orders',
       'Use code FIRST10 for 10% off!',

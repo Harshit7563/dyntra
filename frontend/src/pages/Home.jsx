@@ -7,7 +7,6 @@ import { fetchHeroSlides, fetchProducts, fetchCategoriesGrouped, fetchTestimonia
 import { COMPANY } from '../data/company';
 
 const priceRanges = [
-  { slug: 'under-500', label: 'Under ₹500', desc: 'Budget Picks' },
   { slug: '500-1500', label: '₹500 – ₹1,500', desc: 'Everyday Silks' },
   { slug: '1500-3000', label: '₹1,500 – ₹3,000', desc: 'Festive Favourites' },
   { slug: '3000-6000', label: '₹3,000 – ₹6,000', desc: 'Premium Collection' },

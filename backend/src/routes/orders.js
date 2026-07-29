@@ -5,8 +5,8 @@ import { sendOrderNotifications } from '../services/notifications.js';
 import { COD_MAX_PRODUCT_PRICE } from '../config/payment.js';
 
 const router = Router();
-const FREE_SHIPPING_MIN = 999;
-const SHIPPING_FEE = 49;
+const FREE_SHIPPING_MIN = 0;
+const SHIPPING_FEE = 0;
 const VALID_COUPONS = { FIRST10: 0.1 };
 
 function generateOrderNumber() {
@@ -116,7 +116,7 @@ router.post('/', authRequired, async (req, res) => {
       }
     }
 
-    const shipping = subtotal >= FREE_SHIPPING_MIN ? 0 : SHIPPING_FEE;
+    const shipping = 0;
     const coupon = coupon_code?.trim().toUpperCase();
     const discountRate = VALID_COUPONS[coupon] || 0;
     const discount = Math.round(subtotal * discountRate);

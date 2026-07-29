@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../api';
-import { calcOrderTotals, FREE_SHIPPING_MIN } from '../utils/order';
+import { calcOrderTotals } from '../utils/order';
 
 export default function Cart() {
   const { items, removeFromCart, updateQuantity, total, clearCart } = useCart();
@@ -103,11 +103,6 @@ export default function Cart() {
             >
               Clear Cart
             </button>
-            {total < FREE_SHIPPING_MIN && (
-              <p className="text-xs text-gray-500 mt-4 text-center">
-                Add {formatPrice(FREE_SHIPPING_MIN - total)} more for free shipping
-              </p>
-            )}
           </div>
         </div>
       </div>
