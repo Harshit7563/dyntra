@@ -82,19 +82,17 @@ export default function Checkout() {
 
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
-        const data = await res.json();
+        const res = await fetch(`/api/pincode/${pin}`);
+        const data = await res.json().catch(() => ({}));
         if (cancelled) return;
 
-        const row = Array.isArray(data) ? data[0] : null;
-        const office = row?.Status === 'Success' && row.PostOffice?.[0];
-        if (!office) {
-          setPincodeStatus('Invalid pincode');
+        if (!res.ok || !data.city) {
+          setPincodeStatus(data.error || 'Invalid pincode');
           return;
         }
 
-        const city = (office.District || office.Block || office.Name || '').trim();
-        const apiState = (office.State || '').trim();
+        const city = String(data.city || '').trim();
+        const apiState = String(data.state || '').trim();
         const matchedState =
           INDIAN_STATES.find((s) => s.toLowerCase() === apiState.toLowerCase()) ||
           INDIAN_STATES.find((s) => apiState.toLowerCase().includes(s.toLowerCase())) ||

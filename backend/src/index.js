@@ -16,6 +16,7 @@ import paymentRouter from './routes/payment.js';
 import contactRouter from './routes/contact.js';
 import aiRouter from './routes/ai.js';
 import festivalRouter from './routes/festival.js';
+import pincodeRouter from './routes/pincode.js';
 
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), '../.env') });
 
@@ -60,6 +61,7 @@ app.use('/api/payment', paymentRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/festival', festivalRouter);
+app.use('/api/pincode', pincodeRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/orders', ordersRouter);
 
