@@ -48,7 +48,7 @@ export default function Account() {
       setShowDeleteConfirm(false);
       setDeleteMsg(
         data.message ||
-          'Aapka account 7 din mein automatically permanently delete ho jayega.'
+          'Your account will be permanently deleted automatically in 7 days.'
       );
     } catch (err) {
       setDeleteMsg(err.message || 'Could not schedule deletion');
@@ -157,8 +157,8 @@ export default function Account() {
       <section className="bg-white border border-red-200 p-6 mt-10">
         <h2 className="font-serif text-xl text-maroon mb-2">Delete Account</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Account delete karne par yeh 7 din baad automatically permanently delete ho jayega.
-          Usse pehle aap yahan se cancel bhi kar sakte ho.
+          If you delete your account, it will be permanently deleted automatically after 7 days.
+          You can cancel anytime before that from this page.
         </p>
         {deleteMsg && <p className="text-sm text-maroon mb-4">{deleteMsg}</p>}
 
@@ -166,8 +166,8 @@ export default function Account() {
           <div className="bg-red-50 border border-red-200 p-4 mb-4 text-sm text-gray-800">
             <p className="font-medium text-red-800 mb-2">Confirm account deletion</p>
             <p className="mb-4">
-              Aapka account <strong>7 din</strong> mein automatically permanently delete ho jayega.
-              Kya aap continue karna chahte ho?
+              Your account will be permanently deleted automatically in <strong>7 days</strong>.
+              Do you want to continue?
             </p>
             <div className="flex flex-wrap gap-3">
               <button
