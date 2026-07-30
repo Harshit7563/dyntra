@@ -9,6 +9,7 @@ export default function Account() {
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [deleteMsg, setDeleteMsg] = useState('');
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -38,20 +39,16 @@ export default function Account() {
       })
     : null;
 
-  const handleDelete = async () => {
-    const ok = window.confirm(
-      'Delete your account?\n\nYour account will be permanently deleted automatically in 7 days. You can cancel anytime before that from this page.'
-    );
-    if (!ok) return;
-
+  const handleDeleteConfirm = async () => {
     setDeleteBusy(true);
     setDeleteMsg('');
     try {
       const data = await scheduleAccountDeletion();
       if (data.user) login(data.user, token);
+      setShowDeleteConfirm(false);
       setDeleteMsg(
         data.message ||
-          'Your account will be automatically deleted in 7 days.'
+          'Aapka account 7 din mein automatically permanently delete ho jayega.'
       );
     } catch (err) {
       setDeleteMsg(err.message || 'Could not schedule deletion');
@@ -160,10 +157,39 @@ export default function Account() {
       <section className="bg-white border border-red-200 p-6 mt-10">
         <h2 className="font-serif text-xl text-maroon mb-2">Delete Account</h2>
         <p className="text-sm text-gray-500 mb-4">
-          If you delete your account, it will be permanently removed automatically after 7 days.
-          Order history may be retained for legal records without your login access.
+          Account delete karne par yeh 7 din baad automatically permanently delete ho jayega.
+          Usse pehle aap yahan se cancel bhi kar sakte ho.
         </p>
         {deleteMsg && <p className="text-sm text-maroon mb-4">{deleteMsg}</p>}
+
+        {showDeleteConfirm && !user.deletion_requested_at && (
+          <div className="bg-red-50 border border-red-200 p-4 mb-4 text-sm text-gray-800">
+            <p className="font-medium text-red-800 mb-2">Confirm account deletion</p>
+            <p className="mb-4">
+              Aapka account <strong>7 din</strong> mein automatically permanently delete ho jayega.
+              Kya aap continue karna chahte ho?
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={deleteBusy}
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2.5 bg-red-700 text-white text-xs uppercase tracking-wider hover:bg-red-800 transition-colors disabled:opacity-60"
+              >
+                {deleteBusy ? 'Please wait…' : 'Yes, delete in 7 days'}
+              </button>
+              <button
+                type="button"
+                disabled={deleteBusy}
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2.5 border border-gray-300 text-gray-700 text-xs uppercase tracking-wider hover:bg-gray-50 transition-colors disabled:opacity-60"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         {user.deletion_requested_at ? (
           <button
             type="button"
@@ -174,14 +200,16 @@ export default function Account() {
             {deleteBusy ? 'Please wait…' : 'Cancel Deletion'}
           </button>
         ) : (
-          <button
-            type="button"
-            disabled={deleteBusy || !!user.is_admin}
-            onClick={handleDelete}
-            className="px-4 py-2.5 bg-red-700 text-white text-xs uppercase tracking-wider hover:bg-red-800 transition-colors disabled:opacity-60"
-          >
-            {deleteBusy ? 'Please wait…' : 'Delete Account'}
-          </button>
+          !showDeleteConfirm && (
+            <button
+              type="button"
+              disabled={deleteBusy || !!user.is_admin}
+              onClick={() => setShowDeleteConfirm(true)}
+              className="px-4 py-2.5 bg-red-700 text-white text-xs uppercase tracking-wider hover:bg-red-800 transition-colors disabled:opacity-60"
+            >
+              Delete Account
+            </button>
+          )
         )}
       </section>
     </div>
