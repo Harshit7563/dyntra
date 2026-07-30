@@ -89,33 +89,37 @@ export async function sendOrderNotifications(order, items = []) {
   `;
 
   const address = `${order.address_line1}, ${order.city}, ${order.state} – ${order.pincode}`;
-  const totalPlain = String(Math.round(Number(order.total) || 0));
-  const subtotalPlain = String(Math.round(Number(order.subtotal ?? order.total) || 0));
-  const shippingPlain = String(Math.round(Number(order.shipping) || 0));
-  const discountPlain = String(Math.round(Number(order.discount) || 0));
+  // Prices are tax-inclusive (GST 18% included in total)
+  const totalNum = Math.round(Number(order.total) || 0);
+  const taxableNum = Math.round(totalNum / 1.18);
+  const gstNum = Math.max(0, totalNum - taxableNum);
+  const totalPlain = String(totalNum);
+  const taxablePlain = String(taxableNum);
+  const gstPlain = String(gstNum);
   const orderParams = {
     to_name: String(order.customer_name || ''),
     customer_name: String(order.customer_name || ''),
     order_id: String(order.order_number || ''),
     order_number: String(order.order_number || ''),
-    // Amount aliases (match common EmailJS / Shopify-style templates)
+    // Amounts (tax-inclusive total; GST broken out for email)
     total: totalPlain,
     amount: totalPlain,
     total_amount: totalPlain,
     order_total: totalPlain,
     cost_total: totalPlain,
-    subtotal: subtotalPlain,
-    shipping: shippingPlain === '0' ? 'Free' : shippingPlain,
-    shipping_amount: shippingPlain,
-    taxes: '0',
-    tax: '0',
-    discount: discountPlain,
-    // Nested (for {{cost.total}} etc. if template uses them)
+    subtotal: taxablePlain,
+    taxable_amount: taxablePlain,
+    taxes: gstPlain,
+    tax: gstPlain,
+    gst: gstPlain,
+    gst_rate: '18%',
+    tax_note: 'Includes 18% GST',
+    discount: String(Math.round(Number(order.discount) || 0)),
     cost: {
       total: totalPlain,
-      subtotal: subtotalPlain,
-      shipping: shippingPlain === '0' ? 'Free' : shippingPlain,
-      tax: '0',
+      subtotal: taxablePlain,
+      tax: gstPlain,
+      gst: gstPlain,
     },
     payment_method: String(paymentLabel || ''),
     payment: 'COD (Cash on delivery)',
@@ -133,6 +137,7 @@ export async function sendOrderNotifications(order, items = []) {
   console.log('[order:emailjs:params]', {
     order_id: orderParams.order_id,
     total: orderParams.total,
+    gst: orderParams.gst,
     email: orderParams.email,
   });
 
