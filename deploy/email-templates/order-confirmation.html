@@ -58,7 +58,6 @@
                     <div style="font-size:13px;margin-bottom:6px;"><strong style="color:#C9A84C;">Order:</strong> {{order_id}}</div>
                     <div style="font-size:13px;margin-bottom:6px;"><strong style="color:#C9A84C;">Payment:</strong> {{payment}}</div>
                     <div style="font-size:18px;margin-top:12px;color:#C9A84C;font-weight:700;">₹{{total}}</div>
-                    <div style="font-size:11px;color:#E8D5A3;">Incl. 18% GST</div>
                   </td>
                   <td width="50%" valign="top" style="padding:20px;font-family:Arial,Helvetica,sans-serif;color:#FFF8EE;border-left:1px solid #7B1E3A;">
                     <div style="font-size:11px;letter-spacing:1px;color:#C9A84C;text-transform:uppercase;margin-bottom:8px;">Shipping Address</div>
@@ -81,32 +80,6 @@
 
               <!-- Items (plain text lines from backend) -->
               <div style="background:#FAF7F2;border:1px solid #E8D9C4;border-radius:10px;padding:16px;font-size:14px;line-height:1.7;color:#333;white-space:pre-line;">{{order_items}}</div>
-            </td>
-          </tr>
-
-          <!-- Totals: NO shipping; tax-inclusive 18% GST -->
-          <tr>
-            <td style="padding:24px 28px 8px;font-family:Arial,Helvetica,sans-serif;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:320px;margin-left:auto;">
-                <tr>
-                  <td style="padding:8px 0;font-size:14px;color:#666;">Taxable Amount</td>
-                  <td align="right" style="padding:8px 0;font-size:14px;color:#333;">₹{{taxable_amount}}</td>
-                </tr>
-                <tr>
-                  <td style="padding:8px 0;font-size:14px;color:#666;">GST (18%)</td>
-                  <td align="right" style="padding:8px 0;font-size:14px;color:#333;">₹{{taxes}}</td>
-                </tr>
-                <tr>
-                  <td colspan="2" style="border-top:2px solid #7B1E3A;padding-top:12px;"></td>
-                </tr>
-                <tr>
-                  <td style="padding:4px 0;font-size:16px;font-weight:700;color:#7B1E3A;">Total</td>
-                  <td align="right" style="padding:4px 0;font-size:18px;font-weight:700;color:#7B1E3A;">₹{{total}}</td>
-                </tr>
-                <tr>
-                  <td colspan="2" align="right" style="font-size:11px;color:#999;padding-top:4px;">Price includes 18% GST · Free shipping</td>
-                </tr>
-              </table>
             </td>
           </tr>
 
