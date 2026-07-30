@@ -89,18 +89,36 @@ export async function sendOrderNotifications(order, items = []) {
   `;
 
   const address = `${order.address_line1}, ${order.city}, ${order.state} – ${order.pincode}`;
-  // Flat strings only — EmailJS nested {{cost.total}} is unreliable on REST API
-  const totalPlain = String(Math.round(Number(order.total)));
+  const totalPlain = String(Math.round(Number(order.total) || 0));
+  const subtotalPlain = String(Math.round(Number(order.subtotal ?? order.total) || 0));
+  const shippingPlain = String(Math.round(Number(order.shipping) || 0));
+  const discountPlain = String(Math.round(Number(order.discount) || 0));
   const orderParams = {
     to_name: String(order.customer_name || ''),
     customer_name: String(order.customer_name || ''),
     order_id: String(order.order_number || ''),
     order_number: String(order.order_number || ''),
+    // Amount aliases (match common EmailJS / Shopify-style templates)
     total: totalPlain,
     amount: totalPlain,
-    cost_total: totalPlain,
+    total_amount: totalPlain,
     order_total: totalPlain,
+    cost_total: totalPlain,
+    subtotal: subtotalPlain,
+    shipping: shippingPlain === '0' ? 'Free' : shippingPlain,
+    shipping_amount: shippingPlain,
+    taxes: '0',
+    tax: '0',
+    discount: discountPlain,
+    // Nested (for {{cost.total}} etc. if template uses them)
+    cost: {
+      total: totalPlain,
+      subtotal: subtotalPlain,
+      shipping: shippingPlain === '0' ? 'Free' : shippingPlain,
+      tax: '0',
+    },
     payment_method: String(paymentLabel || ''),
+    payment: 'COD (Cash on delivery)',
     phone: String(order.phone || ''),
     email: String(order.email || ''),
     order_items: orderItemsText(items),
