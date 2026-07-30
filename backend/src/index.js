@@ -17,7 +17,7 @@ import contactRouter from './routes/contact.js';
 import aiRouter from './routes/ai.js';
 import festivalRouter from './routes/festival.js';
 
-dotenv.config();
+dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), '../.env') });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadsPath = path.join(__dirname, '../uploads');
