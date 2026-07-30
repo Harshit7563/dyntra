@@ -28,6 +28,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [paymentMethods, setPaymentMethods] = useState(DEFAULT_METHODS);
+  const [pincodeStatus, setPincodeStatus] = useState('');
 
   const [form, setForm] = useState({
     customer_name: '',
@@ -36,7 +37,7 @@ export default function Checkout() {
     address_line1: '',
     address_line2: '',
     city: '',
-    state: 'Karnataka',
+    state: '',
     pincode: '',
     payment_method: 'cod',
   });
@@ -69,9 +70,61 @@ export default function Checkout() {
     }
   }, [user]);
 
+  useEffect(() => {
+    const pin = form.pincode.trim();
+    if (!/^\d{6}$/.test(pin)) {
+      setPincodeStatus('');
+      return undefined;
+    }
+
+    let cancelled = false;
+    setPincodeStatus('Looking up…');
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+        const data = await res.json();
+        if (cancelled) return;
+
+        const row = Array.isArray(data) ? data[0] : null;
+        const office = row?.Status === 'Success' && row.PostOffice?.[0];
+        if (!office) {
+          setPincodeStatus('Invalid pincode');
+          return;
+        }
+
+        const city = (office.District || office.Block || office.Name || '').trim();
+        const apiState = (office.State || '').trim();
+        const matchedState =
+          INDIAN_STATES.find((s) => s.toLowerCase() === apiState.toLowerCase()) ||
+          INDIAN_STATES.find((s) => apiState.toLowerCase().includes(s.toLowerCase())) ||
+          apiState;
+
+        setForm((prev) => ({
+          ...prev,
+          city: city || prev.city,
+          state: matchedState || prev.state,
+        }));
+        setPincodeStatus('City & state filled');
+      } catch {
+        if (!cancelled) setPincodeStatus('Could not fetch city/state');
+      }
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [form.pincode]);
+
   const { shipping, discount, total: grandTotal } = calcOrderTotals(total, appliedCoupon);
 
   const updateField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const updatePincode = (value) => {
+    const digits = value.replace(/\D/g, '').slice(0, 6);
+    setForm((prev) => ({ ...prev, pincode: digits }));
+  };
 
   const applyCoupon = () => {
     if (coupon.trim().toUpperCase() === 'FIRST10') {
@@ -217,21 +270,46 @@ export default function Checkout() {
               </div>
               <div className="grid sm:grid-cols-3 gap-4">
                 <div>
+                  <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Pincode *</label>
+                  <input
+                    required
+                    inputMode="numeric"
+                    pattern="\d{6}"
+                    maxLength={6}
+                    value={form.pincode}
+                    onChange={(e) => updatePincode(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gold/30 focus:outline-none focus:border-maroon text-sm"
+                    placeholder="560001"
+                  />
+                  {pincodeStatus && (
+                    <p className={`text-xs mt-1 ${pincodeStatus === 'Invalid pincode' || pincodeStatus.startsWith('Could') ? 'text-red-500' : 'text-gray-500'}`}>
+                      {pincodeStatus}
+                    </p>
+                  )}
+                </div>
+                <div>
                   <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">City *</label>
-                  <input required value={form.city} onChange={(e) => updateField('city', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gold/30 focus:outline-none focus:border-maroon text-sm" />
+                  <input
+                    required
+                    value={form.city}
+                    onChange={(e) => updateField('city', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gold/30 focus:outline-none focus:border-maroon text-sm"
+                    placeholder="Auto from pincode"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">State *</label>
-                  <select required value={form.state} onChange={(e) => updateField('state', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gold/30 focus:outline-none focus:border-maroon text-sm bg-white">
-                    {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  <select
+                    required
+                    value={form.state}
+                    onChange={(e) => updateField('state', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gold/30 focus:outline-none focus:border-maroon text-sm bg-white"
+                  >
+                    <option value="">Select state</option>
+                    {INDIAN_STATES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
                   </select>
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Pincode *</label>
-                  <input required pattern="\d{6}" maxLength={6} value={form.pincode} onChange={(e) => updateField('pincode', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gold/30 focus:outline-none focus:border-maroon text-sm" placeholder="560001" />
                 </div>
               </div>
             </div>
