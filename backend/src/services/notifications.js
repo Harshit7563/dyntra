@@ -260,7 +260,7 @@ export async function sendWelcomeEmail({ name, email, password }) {
     <p><strong>Website:</strong> https://dyntra.in<br/>
     <strong>Email:</strong> ${email}</p>
     <p><a href="https://dyntra.in/login">Login Now</a></p>
-    <p>Support: support@dyntra.in</p>
+    <p>Support: dynatradex.pvt.ltd@gmail.com</p>
   `;
 
   return sendEmail({

@@ -12,6 +12,27 @@ function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
+function publicUser(row) {
+  if (!row) return null;
+  const deletionRequestedAt = row.deletion_requested_at || null;
+  let deletion_effective_at = null;
+  if (deletionRequestedAt) {
+    const d = new Date(deletionRequestedAt);
+    d.setDate(d.getDate() + 7);
+    deletion_effective_at = d.toISOString();
+  }
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    is_admin: row.is_admin,
+    created_at: row.created_at,
+    deletion_requested_at: deletionRequestedAt,
+    deletion_effective_at,
+  };
+}
+
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -37,7 +58,7 @@ router.post('/register', async (req, res) => {
       [name.trim(), email.toLowerCase().trim(), password_hash, phone?.trim() || null]
     );
 
-    const user = rows[0];
+    const user = publicUser(rows[0]);
     const token = signToken(user);
 
     sendWelcomeEmail({
@@ -61,7 +82,7 @@ router.post('/login', async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      'SELECT id, name, email, phone, password_hash, is_admin, created_at FROM users WHERE email = $1',
+      'SELECT id, name, email, phone, password_hash, is_admin, created_at, deletion_requested_at FROM users WHERE email = $1',
       [email.toLowerCase().trim()]
     );
 
@@ -69,13 +90,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const user = rows[0];
-    const valid = await bcrypt.compare(password, user.password_hash);
+    const row = rows[0];
+    const valid = await bcrypt.compare(password, row.password_hash);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    delete user.password_hash;
+    const user = publicUser(row);
     const token = signToken(user);
     res.json({ user, token });
   } catch (err) {
@@ -155,12 +176,65 @@ router.post('/reset-password', async (req, res) => {
 
 router.get('/me', authRequired, async (req, res) => {
   try {
+    // Opportunistic purge of expired scheduled deletions
+    await pool.query(
+      `DELETE FROM users
+       WHERE deletion_requested_at IS NOT NULL
+         AND deletion_requested_at <= NOW() - INTERVAL '7 days'
+         AND COALESCE(is_admin, false) = false`
+    );
+
     const { rows } = await pool.query(
-      'SELECT id, name, email, phone, is_admin, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, phone, is_admin, created_at, deletion_requested_at FROM users WHERE id = $1',
       [req.user.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'User not found' });
-    res.json(rows[0]);
+    res.json(publicUser(rows[0]));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/delete-account', authRequired, async (req, res) => {
+  try {
+    if (req.user.is_admin) {
+      return res.status(400).json({ error: 'Admin accounts cannot be deleted this way' });
+    }
+
+    const { rows } = await pool.query(
+      `UPDATE users
+       SET deletion_requested_at = COALESCE(deletion_requested_at, NOW())
+       WHERE id = $1
+       RETURNING id, name, email, phone, is_admin, created_at, deletion_requested_at`,
+      [req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+
+    const user = publicUser(rows[0]);
+    res.json({
+      user,
+      message:
+        'Your account is scheduled for deletion. It will be permanently deleted automatically in 7 days.',
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/cancel-deletion', authRequired, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users
+       SET deletion_requested_at = NULL
+       WHERE id = $1
+       RETURNING id, name, email, phone, is_admin, created_at, deletion_requested_at`,
+      [req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    res.json({
+      user: publicUser(rows[0]),
+      message: 'Account deletion cancelled.',
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

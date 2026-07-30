@@ -2,7 +2,7 @@ export const COMPANY = {
   brand: 'Dyntra',
   legalName: 'DYNATRADEX PRIVATE LIMITED',
   cin: 'U46901MH2025PTC463624',
-  email: 'dynatradex@gmail.com',
+  email: 'dynatradex.pvt.ltd@gmail.com',
   phone: '+91 91373 82475',
   phoneTel: 'tel:+919137382475',
   whatsappUrl: 'https://wa.me/919137382475',

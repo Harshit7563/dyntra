@@ -75,7 +75,7 @@ export default function Signup() {
           />
         </div>
         <div>
-          <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Phone (optional)</label>
+          <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Phone</label>
           <input
             type="tel"
             pattern="[6-9][0-9]{9}"

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchMyOrders, formatPrice } from '../api';
+import { fetchMyOrders, formatPrice, scheduleAccountDeletion, cancelAccountDeletion } from '../api';
 
 export default function Account() {
-  const { user, loading, logout, isLoggedIn } = useAuth();
+  const { user, loading, logout, isLoggedIn, login, token } = useAuth();
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [deleteMsg, setDeleteMsg] = useState('');
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -28,6 +30,50 @@ export default function Account() {
     return <Navigate to="/login" replace state={{ from: { pathname: '/account' } }} />;
   }
 
+  const deletionDate = user.deletion_effective_at
+    ? new Date(user.deletion_effective_at).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : null;
+
+  const handleDelete = async () => {
+    const ok = window.confirm(
+      'Delete your account?\n\nYour account will be permanently deleted automatically in 7 days. You can cancel anytime before that from this page.'
+    );
+    if (!ok) return;
+
+    setDeleteBusy(true);
+    setDeleteMsg('');
+    try {
+      const data = await scheduleAccountDeletion();
+      if (data.user) login(data.user, token);
+      setDeleteMsg(
+        data.message ||
+          'Your account will be automatically deleted in 7 days.'
+      );
+    } catch (err) {
+      setDeleteMsg(err.message || 'Could not schedule deletion');
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
+  const handleCancelDelete = async () => {
+    setDeleteBusy(true);
+    setDeleteMsg('');
+    try {
+      const data = await cancelAccountDeletion();
+      if (data.user) login(data.user, token);
+      setDeleteMsg(data.message || 'Account deletion cancelled.');
+    } catch (err) {
+      setDeleteMsg(err.message || 'Could not cancel deletion');
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
       <div className="flex items-start justify-between gap-4 mb-10">
@@ -42,6 +88,14 @@ export default function Account() {
           Logout
         </button>
       </div>
+
+      {user.deletion_requested_at && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-900 text-sm p-4 mb-8">
+          Your account is scheduled for deletion
+          {deletionDate ? ` on ${deletionDate}` : ' in 7 days'}.
+          It will be permanently removed automatically. You can cancel below.
+        </div>
+      )}
 
       <section className="bg-white border border-gold/20 p-6 mb-8">
         <h2 className="font-serif text-xl text-maroon mb-4">Profile</h2>
@@ -100,6 +154,34 @@ export default function Account() {
               </Link>
             ))}
           </div>
+        )}
+      </section>
+
+      <section className="bg-white border border-red-200 p-6 mt-10">
+        <h2 className="font-serif text-xl text-maroon mb-2">Delete Account</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          If you delete your account, it will be permanently removed automatically after 7 days.
+          Order history may be retained for legal records without your login access.
+        </p>
+        {deleteMsg && <p className="text-sm text-maroon mb-4">{deleteMsg}</p>}
+        {user.deletion_requested_at ? (
+          <button
+            type="button"
+            disabled={deleteBusy}
+            onClick={handleCancelDelete}
+            className="px-4 py-2.5 border border-maroon text-maroon text-xs uppercase tracking-wider hover:bg-maroon hover:text-white transition-colors disabled:opacity-60"
+          >
+            {deleteBusy ? 'Please wait…' : 'Cancel Deletion'}
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={deleteBusy || !!user.is_admin}
+            onClick={handleDelete}
+            className="px-4 py-2.5 bg-red-700 text-white text-xs uppercase tracking-wider hover:bg-red-800 transition-colors disabled:opacity-60"
+          >
+            {deleteBusy ? 'Please wait…' : 'Delete Account'}
+          </button>
         )}
       </section>
     </div>

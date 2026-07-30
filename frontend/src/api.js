@@ -196,6 +196,22 @@ export async function fetchMe(token = getToken()) {
   return parseJson(res);
 }
 
+export async function scheduleAccountDeletion() {
+  const res = await fetch(`${API_BASE}/auth/delete-account`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  return parseJson(res);
+}
+
+export async function cancelAccountDeletion() {
+  const res = await fetch(`${API_BASE}/auth/cancel-deletion`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  return parseJson(res);
+}
+
 export async function fetchMyOrders() {
   const res = await fetch(`${API_BASE}/orders/my`, {
     headers: authHeaders(),

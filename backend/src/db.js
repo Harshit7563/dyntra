@@ -132,6 +132,7 @@ export async function initDb() {
     ALTER TABLE categories ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMPTZ;
     ALTER TABLE products ADD COLUMN IF NOT EXISTS compare_price DECIMAL(10, 2);
     ALTER TABLE products ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'paid';
@@ -205,4 +206,22 @@ export async function initDb() {
     INSERT INTO festival_settings (id, enabled, festival_key)
     VALUES (1, false, 'none') ON CONFLICT (id) DO NOTHING;
   `);
+
+  // Hard-delete accounts scheduled 7+ days ago
+  await pool.query(
+    `DELETE FROM users
+     WHERE deletion_requested_at IS NOT NULL
+       AND deletion_requested_at <= NOW() - INTERVAL '7 days'
+       AND COALESCE(is_admin, false) = false`
+  );
+}
+
+export async function purgeScheduledAccountDeletions() {
+  const { rowCount } = await pool.query(
+    `DELETE FROM users
+     WHERE deletion_requested_at IS NOT NULL
+       AND deletion_requested_at <= NOW() - INTERVAL '7 days'
+       AND COALESCE(is_admin, false) = false`
+  );
+  return rowCount;
 }
