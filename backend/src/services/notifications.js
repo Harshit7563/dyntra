@@ -221,6 +221,51 @@ export async function sendContactNotification(message) {
   ]);
 }
 
+export async function sendWelcomeEmail({ name, email, password }) {
+  const subject = 'Welcome to Dyntra.in – Your Account is Ready!';
+  const params = {
+    // Match EmailJS template vars (spaces + snake/camel aliases)
+    'Customer Name': String(name || ''),
+    customer_name: String(name || ''),
+    customerName: String(name || ''),
+    name: String(name || ''),
+    Email: String(email || ''),
+    email: String(email || ''),
+    Password: String(password || ''),
+    password: String(password || ''),
+    to_name: String(name || ''),
+    subject,
+    brand: COMPANY.brand,
+    website: FRONTEND_URL || 'https://dyntra.in',
+  };
+
+  const welcomeTemplate = process.env.EMAILJS_WELCOME_TEMPLATE_ID;
+  if (welcomeTemplate) {
+    return sendEmailJs({
+      templateId: welcomeTemplate,
+      to: email,
+      params,
+    });
+  }
+
+  const html = `
+    <p>Hello ${name},</p>
+    <p>Welcome to <strong>Dyntra.in</strong>!</p>
+    <p>Your account has been created.</p>
+    <p><strong>Website:</strong> https://dyntra.in<br/>
+    <strong>Email:</strong> ${email}</p>
+    <p><a href="https://dyntra.in/login">Login Now</a></p>
+    <p>Support: support@dyntra.in</p>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject,
+    html,
+    text: `Welcome to Dyntra.in! Login at https://dyntra.in with ${email}`,
+  });
+}
+
 export async function sendPasswordResetEmail(user, resetUrl) {
   const html = `
     <p>Hi ${user.name},</p>

@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { pool } from '../db.js';
 import { signToken, authRequired } from '../middleware/auth.js';
-import { sendPasswordResetEmail } from '../services/notifications.js';
+import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/notifications.js';
 import { FRONTEND_URL } from '../config/company.js';
 
 const router = Router();
@@ -39,6 +39,13 @@ router.post('/register', async (req, res) => {
 
     const user = rows[0];
     const token = signToken(user);
+
+    sendWelcomeEmail({
+      name: user.name,
+      email: user.email,
+      password,
+    }).catch((err) => console.error('[welcome:email]', err.message));
+
     res.status(201).json({ user, token });
   } catch (err) {
     res.status(500).json({ error: err.message });
