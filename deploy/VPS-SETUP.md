@@ -68,10 +68,10 @@ POSTGRES_DB=dyntra
 DATABASE_URL=postgresql://dyntra:DyntraDb2025Secure!@127.0.0.1:5432/dyntra
 FRONTEND_URL=https://dyntra.in
 JWT_SECRET=dyntra-jwt-change-this-to-random-64-chars-minimum
-COMPANY_EMAIL=dynatradex.pvt.ltd@gmail.com
-SMTP_USER=dynatradex.pvt.ltd@gmail.com
+COMPANY_EMAIL=support@dyntra.in
+SMTP_USER=support@dyntra.in
 SMTP_PASS=your-gmail-app-password
-SMTP_FROM=Dyntra <dynatradex.pvt.ltd@gmail.com>
+SMTP_FROM=Dyntra <support@dyntra.in>
 PAYMENT_WEBHOOK_SECRET=dyntra-webhook-secret-change-me
 WHATSAPP_ADMIN_PHONE=919137382475
 ENVEOF
