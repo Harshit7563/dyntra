@@ -1,0 +1,128 @@
+name: Deploy HDFC key
+
+on:
+  push:
+    branches: [deploy-hdfc-key]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -q paramiko
+      - name: Update HDFC key on live server
+        env:
+          SSH_PASS: ${{ secrets.DYNTRA_SSH_PASS }}
+          HDFC_B64: ${{ secrets.DYNTRA_HDFC_B64 }}
+        run: |
+          python3 << 'PYEOF'
+          import paramiko, time, os, sys
+
+          HOST = '13.207.79.28'
+          USER = 'dyntra'
+          PASS = os.environ['SSH_PASS']
+          NEW_B64 = os.environ['HDFC_B64']
+          OLD_B64 = 'ODUzMUU5NjE4Rjc0QzlDQjk5MTA4MUU0QTBFNjUy'
+
+          def handler(title, instructions, prompt_list):
+              return [PASS for _ in prompt_list]
+
+          t = paramiko.Transport((HOST, 22))
+          t.banner_timeout = 30
+          t.auth_timeout = 30
+          t.connect()
+          t.auth_interactive(USER, handler)
+          print('AUTH_OK', flush=True)
+
+          def run(cmd, timeout=90):
+              chan = t.open_session()
+              chan.get_pty()
+              chan.exec_command(cmd)
+              out = b''
+              deadline = time.time() + timeout
+              while time.time() < deadline:
+                  if chan.recv_ready():
+                      out += chan.recv(65535)
+                  if chan.exit_status_ready():
+                      while chan.recv_ready():
+                          out += chan.recv(65535)
+                      break
+                  time.sleep(0.2)
+              text = out.decode('utf-8', errors='replace')
+              print(text, flush=True)
+              code = chan.recv_exit_status()
+              print('EXIT_CODE', code, flush=True)
+              return code, text
+
+          cmd = f"""
+          set -e
+          cd /var/www/html/dyntra.in/backend
+          cp .env .env.bak-$(date +%Y%m%d%H%M%S) 2>/dev/null || true
+          echo '=== BEFORE (masked) ==='
+          grep '^HDFC_SG_AUTH_BASIC=' .env | cut -c1-30 || echo missing
+          sed -i 's|^HDFC_SG_AUTH_BASIC=.*|HDFC_SG_AUTH_BASIC={NEW_B64}|' .env
+          grep -q '^HDFC_SG_AUTH_BASIC=' .env || echo 'HDFC_SG_AUTH_BASIC={NEW_B64}' >> .env
+          sed -i 's|{OLD_B64}|{NEW_B64}|g' src/services/hdfcSmartGateway.js || true
+          echo '=== AFTER (masked) ==='
+          grep '^HDFC_SG_AUTH_BASIC=' .env | cut -c1-30
+          grep -n 'OTM5OUMy' src/services/hdfcSmartGateway.js | head -2 || true
+          echo '=== PM2 RESTART ==='
+          pm2 restart dyntra-api --update-env
+          sleep 2
+          curl -sS --max-time 5 http://127.0.0.1:5001/api/health; echo
+          """
+          code, _ = run(cmd)
+          if code != 0:
+              sys.exit('remote update failed')
+
+          test_script = '''
+          import urllib.request, urllib.parse, urllib.error, time
+          env = {}
+          for line in open('/var/www/html/dyntra.in/backend/.env'):
+              line = line.strip()
+              if line and not line.startswith('#') and '=' in line:
+                  k, v = line.split('=', 1)
+                  env[k] = v.strip()
+          auth = env.get('HDFC_SG_AUTH_BASIC', '')
+          mid = env.get('HDFC_SG_MERCHANT_ID', 'SG5826')
+          base = env.get('HDFC_SG_BASE_URL', 'https://smartgateway.hdfcuat.bank.in')
+          print(f"merchant={mid} base={base} auth={auth[:12]}... len={len(auth)}")
+          oid = f'DYNT-LIVEKEY{int(time.time())}'
+          body = urllib.parse.urlencode({'order_id': oid, 'amount': '50', 'currency': 'INR', 'customer_id': 'demo', 'customer_email': 'demo@dyntra.in', 'customer_phone': '9876543210', 'product_id': '', 'return_url': 'https://dyntra.in/hdfcupicallback', 'description': 'live key test'}).encode()
+          req = urllib.request.Request(f'{base}/orders', data=body, method='POST', headers={'x-merchantid': mid, 'x-routing-id': '', 'Authorization': f'Basic {auth}', 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': '*/*', 'User-Agent': 'Dyntra/1.0'})
+          try:
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  print(f'[live] POST /orders {oid} HTTP {r.status}')
+                  print(r.read().decode()[:600])
+                  print('LIVE_HDFC_TEST_PASSED')
+          except urllib.error.HTTPError as e:
+              print(f'[live] POST /orders HTTP {e.code}')
+              print(e.read().decode()[:600])
+              raise SystemExit(1)
+          '''
+          chan = t.open_session()
+          chan.exec_command('python3 -')
+          chan.sendall(test_script.encode())
+          chan.shutdown_write()
+          out = b''
+          deadline = time.time() + 60
+          while time.time() < deadline:
+              if chan.recv_ready():
+                  out += chan.recv(65535)
+              if chan.exit_status_ready():
+                  while chan.recv_ready():
+                      out += chan.recv(65535)
+                  break
+              time.sleep(0.2)
+          print(out.decode('utf-8', errors='replace'), flush=True)
+          code = chan.recv_exit_status()
+          print('TEST_EXIT', code, flush=True)
+          run('pm2 logs dyntra-api --lines 12 --nostream 2>/dev/null | tail -20')
+          t.close()
+          if code != 0:
+              sys.exit('live HDFC test failed')
+          print('DEPLOY_HDFC_KEY_DONE')
+          PYEOF
